@@ -10,6 +10,11 @@ target_compile_features(libkdebugger PUBLIC cxx_std_17)
 
 target_include_directories(
 	libkdebugger
-	PRIVATE include
-	PUBLIC ${CMAKE_SOURCE_DIR}/include
+	
+	PUBLIC
+	$<INSTALL_INTERFACE:include>
+	$<BUILD_INTERFACE:$CMAKE_SOURCE_DIR}/include>	
+	
+	PRIVATE
+	${CMAKE_SOURCE_DIR}/src/include
 )
