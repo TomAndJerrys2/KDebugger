@@ -1,15 +1,15 @@
 add_library(libkdebugger kdebugger.cpp)
-add_library(kdebugger::kdebugger ALIAS kdebugger)
+add_library(kdebugger::libkdebugger ALIAS libkdebugger)
 
 set_target_properties(
-	kdebugger
+	libkdebugger
 	PROPERTIES OUTPUT_NAME kdebug
 )
 
-target_compile_features(kdebugger PUBLIC cxx_std_17)
+target_compile_features(libkdebugger PUBLIC cxx_std_17)
 
 target_include_directories(
-	kdebugger
+	libkdebugger
 	PRIVATE include
 	PUBLIC ${CMAKE_SOURCE_DIR}/include
 )
