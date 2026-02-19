@@ -1,3 +1,5 @@
+// Kyle Brady - Source file for libKDebugger library
+
 // General includes
 #include <iostream>
 

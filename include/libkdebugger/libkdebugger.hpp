@@ -1,3 +1,5 @@
+// Kyle Brady - Main library file for the KDebugger
+
 #pragma once
 
 namespace kdebugger {
