@@ -1,4 +1,4 @@
-add_library(libkdebugger kdebugger.cpp)
+add_library(libkdebugger libkdebugger.cpp)
 add_library(kdebugger::libkdebugger ALIAS libkdebugger)
 
 set_target_properties(
