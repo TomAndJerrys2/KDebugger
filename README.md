@@ -11,7 +11,12 @@ This project features a debugger tool that I personally use on my Linux
 Fedora build for development. Following this I'll make my own dissasembler
 and other tools and eventually - fork them into a stuite of tools
 
+# Why
+
 # Features
 
+# Build the Project
+
 # Licenses
+
 
