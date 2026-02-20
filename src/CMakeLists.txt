@@ -7,7 +7,7 @@ add_library(kdebugger::libkdebugger ALIAS libkdebugger)
 # and what to call the binaries
 set_target_properties(
 	libkdebugger
-	PROPERTIES OUTPUT_NAME kdebug
+	PROPERTIES OUTPUT_NAME kdebugger
 )
 
 # I am using C++17 for this - though I may eventually
@@ -66,6 +66,6 @@ install (
 # this is specifically for linux distros
 include(GNUInstallDirs)
 install(
-	TARGETS kdebugger
+	TARGETS libkdebugger
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
