@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string_view>
 #include <string>
+#include <vector>
 
 // Linux system interfaces
 #include <sys/ptrace.h>
@@ -68,8 +69,32 @@ namespace {
 };
 
 namespace {
+	// a vector of strings used to split commands with a given delimiter
+	std::vector<std::string> split(std::string_view str, char del);
 	
-	void handle_command(pid_t pid, std::string_view current_line) const;
+	// checks if the command string entered is of a prefix or is whole
+	bool is_prefix(std::string_view str, std::string_view str_of);
+	
+	// resumes the specified PID
+	void resume(pid_t pid);
+
+	// waits for a given signal from a PID
+	void wait_on_signal(pid_t pid);
+	
+	// handles commands given by the command-line as arguments
+	void handle_command(pid_t pid, std::string_view current_line) const {
+		auto args = split(current_line, ' ');
+		auto command = args[0];
+
+		if(is_prefix(command, "continue")) {
+			resume(pid);
+			wait_on_signal(pid);
+		}
+
+		else {
+			std::cerr << "> Unknown Command entered.\n";
+		}
+	}
 };
 
 // Main Execution
