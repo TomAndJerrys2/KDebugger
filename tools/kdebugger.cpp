@@ -95,14 +95,29 @@ int main(int argc, const char** argv) {
 
 	char* line {nullptr};
 	while((line = readline("KDebugger> ")) != nullptr) {
-		// handles the command given to KDebugger
-		handle_command(pid, line);
+		std::string line_str {};
 
-		// Adds command history, like bash would
-		add_history(line);
+		if(line == std::string_view("")) {
+			free(line);
 
-		// free heap-allocated memory
-		free(line);
+			if(history_length > 0)
+				line_str = history_list()[history_length - 1] -> line;
+		}
+
+		else {
+			line_str = line;
+			
+			// add command line to history
+			// provided by libedit
+			add_history(line);
+			
+			// release the line buffer
+			free(line);
+		}
+
+		if(!line_str.empty())
+			// handles the command given to KDebugger
+			handle_command(pid, line);
 	}
 
 	return 0;
