@@ -2,7 +2,15 @@
 #include <iostream>
 #include <unistd.h>
 #include <string_view>
+#include <string>
+
+// Linux system interfaces
 #include <sys/ptrace.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+// Libedit functionality for cmdline
+#include <editline/readline.h>
 
 // Private/Project-specific headers
 #include <libkdebugger/libkdebugger.hpp>
@@ -33,11 +41,35 @@ namespace {
 		}
 		// a Program name is passed
 		else {
+			const char* prog_path = argv[1];
+			if((pid = fork()) < 0) {
+				std::perror("> Failed to fork process.\n");
+				return -1;
+			}	
+			
+			// successfully forked, as it returns 0 in a
+			// given child process
+			if(pid == 0) {
+				// checks if the process to be traced
+				if(ptrace(PTRACE_TRACME, 0, nullptr, nullptr)) {
+					std::perror("> Program Tracing failed.");
+					return -1;
+				}
 
+				if(execlp(prog_path, prog_path, nullptr) < 0) {
+					std::perror("> Exec failed.");
+					return -1;
+				}
+			}
 		}
 
 		return pid;
 	}
+};
+
+namespace {
+	
+	void handle_command(pid_t pid, std::string_view current_line) const;
 };
 
 // Main Execution
@@ -54,6 +86,24 @@ int main(int argc, const char** argv) {
 	// attach to the current PID passed
 	// and return it to this variable
 	const pid_t pid = attach(argc, argv);
+
+	int wait_status {0};
+	int options {0};
+	if(waitpid(pid, std::ref(wait_status), options) < 0) {
+		std::perror("> waitpid failed.");
+	}
+
+	char* line {nullptr};
+	while((line = readline("KDebugger> ")) != nullptr) {
+		// handles the command given to KDebugger
+		handle_command(pid, line);
+
+		// Adds command history, like bash would
+		add_history(line);
+
+		// free heap-allocated memory
+		free(line);
+	}
 
 	return 0;
 }
