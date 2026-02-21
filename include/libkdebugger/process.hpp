@@ -16,9 +16,13 @@ namespace kdebugger {
 
 	class process {
 		
-		pid_t m_Pid {0};
-		bool m_Terminate {true};
-		process_state m_State {process_state::stopped};
+		private:	
+			pid_t m_Pid {0};
+			bool m_Terminate {true};
+			process_state m_State {process_state::stopped};
+
+			process(pid_t pid, bool terminate) : m_Pid {pid},
+				m_Terminate {terminate} {}
 
 		public:
 			// delete default constructor
