@@ -4,5 +4,5 @@
 
 namespace kdebugger {
 	
-	void init_debugger() const;
+	void init_debugger();
 }
