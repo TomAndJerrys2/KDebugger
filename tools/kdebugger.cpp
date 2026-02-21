@@ -135,6 +135,19 @@ namespace {
 // Main Execution
 int main(int argc, const char** argv) {
 		
+	if(argc == 1) {
+		std::cerr << "> No arguments were passed.\n";
+		return -1;
+	}
+
+	const pid_t pid = attach(argc, argv);
+
+	int wait_status;
+	int options {0};
+
+	if(waitpid(pid, &wait_status, options) < 0)
+		std::perror("waitpid failed.\n");
+
 	char* line {nullptr};
 	while((line = readline("KDebugger> ")) != nullptr) {
 		std::string line_str {};
