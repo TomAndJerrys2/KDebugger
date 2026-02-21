@@ -4,6 +4,8 @@
 #include <string_view>
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <sstream>
 
 // Linux system interfaces
 #include <sys/ptrace.h>
@@ -70,10 +72,25 @@ namespace {
 
 namespace {
 	// a vector of strings used to split commands with a given delimiter
-	std::vector<std::string> split(std::string_view str, char del);
+	std::vector<std::string> split(std::string_view str, char del) {
+		std::vector<std::string> out {};
+		std::stringstream ss {std::string {str}};
+		std::string item;
+
+		while(std::getline(ss, item, del))
+			out.push_back(item);
+
+		return out;
+	}
 	
 	// checks if the command string entered is of a prefix or is whole
-	bool is_prefix(std::string_view str, std::string_view str_of);
+	bool is_prefix(std::string_view str, std::string_view str_of) {
+		if(str.size() > str_of.size())
+			return false;
+		
+		// iterators make this a whole lot easier...
+		return std::equal(str.begin(), str.end(), str_of.begin());
+	}
 	
 	// resumes the specified PID
 	void resume(pid_t pid);
