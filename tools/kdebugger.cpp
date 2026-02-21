@@ -1,6 +1,8 @@
 // General Headers
 #include <iostream>
 #include <unistd.h>
+#include <string_view>
+#include <sys/ptrace.h>
 
 // Private/Project-specific headers
 #include <libkdebugger/libkdebugger.hpp>
@@ -9,7 +11,20 @@ namespace {
 	
 	// attachs to a currently running process ID
 	// based on the command-line argument passed
-	const pid_t attach(int argc, const char** argv);
+	pid_t attach(int argc, const char** argv) const {
+		pid_t pid = 0;
+		
+		// a PID is passed
+		if(argc == 3 && argv[1] == std::string_view("-p")) {
+			// code
+		}
+		// a Program name is passed
+		else {
+
+		}
+
+		return pid;
+	}
 };
 
 // Main Execution
@@ -25,7 +40,7 @@ int main(int argc, const char** argv) {
 	
 	// attach to the current PID passed
 	// and return it to this variable
-	pid_t pid = attach(argc, argv);
+	const pid_t pid = attach(argc, argv);
 
 	return 0;
 }
