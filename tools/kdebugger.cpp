@@ -68,7 +68,7 @@ namespace {
 
 		return pid;
 	}
-};
+}
 
 namespace {
 	// a vector of strings used to split commands with a given delimiter
@@ -91,13 +91,31 @@ namespace {
 		// iterators make this a whole lot easier...
 		return std::equal(str.begin(), str.end(), str_of.begin());
 	}
-	
+
+}
+
+namespace {
 	// resumes the specified PID
-	void resume(pid_t pid);
+	void resume(pid_t pid) {
+		if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) < 0) {
+			std::cerr << "> Couldn't continue.\n";
+			std::exit(-1);
+		}	
+	}
 
 	// waits for a given signal from a PID
-	void wait_on_signal(pid_t pid);
-	
+	void wait_on_signal(pid_t pid) {
+		int wait_status;
+		int options {0};
+
+		if(waitpid(pid, &wait_status, options) < 0) {
+			std::perror("> waitpid failed.\n");
+			std::exit(-1);
+		}
+	}
+}
+
+namespace {
 	// handles commands given by the command-line as arguments
 	void handle_command(pid_t pid, std::string_view current_line) const {
 		auto args = split(current_line, ' ');
@@ -112,29 +130,11 @@ namespace {
 			std::cerr << "> Unknown Command entered.\n";
 		}
 	}
-};
+}
 
 // Main Execution
 int main(int argc, const char** argv) {
-	
-	// if our arguments are one
-	// i.e a -p is passed to specify a
-	// Linux process ID
-	if(argc == 1) {
-		std::cerr << "> No arguments were passed\n";
-		return -1;
-	}	
-	
-	// attach to the current PID passed
-	// and return it to this variable
-	const pid_t pid = attach(argc, argv);
-
-	int wait_status {0};
-	int options {0};
-	if(waitpid(pid, std::ref(wait_status), options) < 0) {
-		std::perror("> waitpid failed.");
-	}
-
+		
 	char* line {nullptr};
 	while((line = readline("KDebugger> ")) != nullptr) {
 		std::string line_str {};
@@ -162,5 +162,5 @@ int main(int argc, const char** argv) {
 			handle_command(pid, line);
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }
