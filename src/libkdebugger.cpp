@@ -6,6 +6,6 @@
 // Project include paths
 #include <libkdebugger/libkdebugger.hpp>
 
-void kdebugger::init_debugger() const {
+void kdebugger::init_debugger() {
 	std::cout << "test" << '\n';
 }
