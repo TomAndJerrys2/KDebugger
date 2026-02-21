@@ -5,24 +5,24 @@
 
 // Private / Project-specific headers
 #include <libkdebugger/process.hpp>
+#include <libkdebugger/error.hpp>
 
 // launches a given process via a path
 std::unique_ptr<kdebugger::process> kdebugger::process::launch(const std::filesystem::path path) {
 	
 	pid_t pid {};
 	if((pid = fork()) < 0) {
-		// Error: Fork failed
-		std::perror("Fork Failed\n");
+		error::send_errno("fork failed");
 	}
 
 	if(pid == 0) {
 		
 		if(ptrace(PTRACE_TRACEME, 0, nullptr, nullptr) < 0) {
-			// Error: Tracing failed
+			error::send_errno("Tracing failed");
 		}
 
 		if(execlp(path.c_str(), path.c_str(), nullptr) < 0) {
-			// Error: exec failed
+			error::send_errno("exec failed");
 		}
 	}
 
@@ -36,11 +36,11 @@ std::unique_ptr<kdebugger::process> kdebugger::process::launch(const std::filesy
 std::unique_ptr<kdebugger::process> kdebugger::process::attach(const pid_t pid) {
 	
 	if(pid == 0) {
-		// Error: Inavlid PID
+		error::send("Invalid PID");
 	}
 
 	if(ptrace(PTRACE_ATTACH, pid, nullptr, nullptr) < 0) {
-		// Error: Could not attach
+		error::send_errno("Could not attach");
 	}
 
 	std::unique_ptr<process> proc = new process(pid, false);
