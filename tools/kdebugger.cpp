@@ -16,7 +16,20 @@ namespace {
 		
 		// a PID is passed
 		if(argc == 3 && argv[1] == std::string_view("-p")) {
-			// code
+			pid = std::atoi(argv[2]);
+
+			if(pid <= 0) {
+				std::cerr << "> Invalid PID passed,\n";
+				return -1;
+			}
+			
+			// using the ptrace API to attach to a process
+			// the address and data which are void*'s are just
+			// passed as nullptr (unused in PTRACE_ATTACH)
+			if(ptrace(PTRACE_ATTACH, pid, nullptr, nullptr)) {
+				std::perror("> Could not attach\n");
+				return -1;
+			}
 		}
 		// a Program name is passed
 		else {
