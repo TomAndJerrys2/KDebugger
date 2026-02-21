@@ -1,6 +1,7 @@
 # adds library files from src and namspaces
 # this is a convenience for error handling later
 add_library(libkdebugger libkdebugger.cpp)
+add_library(libkdebugger process.cpp)
 add_library(kdebugger::libkdebugger ALIAS libkdebugger)
 
 # property of where to output the libkdebugger library
