@@ -25,7 +25,7 @@ This project features a debugger tool that I personally use on my Linux
 Fedora build for development. Following this I'll make my own dissasembler
 and other tools and eventually - fork them into a stuite of tools
 
-# Why
+# Why svg/start-with-why.svg
 I've always wanted to built a debugger and the tools surrounding it.
 This along with my eventual, dissassembler and profiler will hopefully
 make its way into a suite of tools I can use personally.
