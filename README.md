@@ -2,8 +2,9 @@
 ![License](https://img.shields.io/badge/license-GPL-green)
 
 > [!NOTE]
-> C++20 Implementation of KDebugger - Notably, using Multithreading and Coroutine
-> functionalities to improve performance, we'll see when I profile it
+> This is KDebugger. A Linux Debugger and it is very much still under development
+> once finished, I should have some more time to create the surrounding tool chain
+> of the "K" tools :)
 <br>
 
 > [!IMPORTANT]
