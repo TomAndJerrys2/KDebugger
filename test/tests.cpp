@@ -84,3 +84,12 @@ TEST_CASE("process::resume success", "[process]") {
 		REQUIRE(success);
 	}
 }
+
+// in case - check if a program ends immediately
+TEST_CASE("process::resume already terminated", "[process]") {
+	auto proc = process::launch("targets/end_immediately");
+	proc->resume();
+	proc->wait_on_signal();
+
+	REQUIRE_THROW_AS(proc->resume(), error);
+}
