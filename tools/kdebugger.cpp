@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <sstream>
+#include <memory>
 
 // Linux system interfaces
 #include <sys/ptrace.h>
