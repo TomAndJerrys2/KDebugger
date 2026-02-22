@@ -26,51 +26,17 @@ namespace {
 
 	// attachs to a currently running process ID
 	// based on the command-line argument passed
-	pid_t attach(int argc, const char** argv) {
-		pid_t pid = 0;
-		
+	std::unique_ptr<kdebugger::process> attach(int argc, const char** argv) {
 		// a PID is passed
 		if(argc == 3 && argv[1] == std::string_view("-p")) {
-			pid = std::atoi(argv[2]);
-
-			if(pid <= 0) {
-				std::cerr << "> Invalid PID passed,\n";
-				return -1;
-			}
-			
-			// using the ptrace API to attach to a process
-			// the address and data which are void*'s are just
-			// passed as nullptr (unused in PTRACE_ATTACH)
-			if(ptrace(PTRACE_ATTACH, pid, nullptr, nullptr)) {
-				std::perror("> Could not attach\n");
-				return -1;
-			}
+			pid_t pid = std::atoi(argv[2]);
+			return kdebugger::process::attach(pid); 	
 		}
 		// a Program name is passed
 		else {
-			const char* prog_path = argv[1];
-			if((pid = fork()) < 0) {
-				std::perror("> Failed to fork process.\n");
-				return -1;
-			}	
-			
-			// successfully forked, as it returns 0 in a
-			// given child process
-			if(pid == 0) {
-				// checks if the process to be traced
-				if(ptrace(PTRACE_TRACEME, 0, nullptr, nullptr)) {
-					std::perror("> Program Tracing failed.");
-					return -1;
-				}
-
-				if(execlp(prog_path, prog_path, nullptr) < 0) {
-					std::perror("> Exec failed.");
-					return -1;
-				}
-			}
-		}
-
-		return pid;
+			const char* program_path = argv[1];
+			return kdebugger::process::launch(program_path);
+		}	
 	}
 
 	// a vector of strings used to split commands with a given delimiter
@@ -119,13 +85,15 @@ namespace {
 	}
 
 	// handles commands given by the command-line as arguments
-	void handle_command(pid_t pid, std::string_view current_line) {
+	void handle_command(std::unique_ptr<kdebugger::process> & process, 
+			std::string_view current_line) {
+		
 		auto args = split(current_line, ' ');
 		auto command = args[0];
 
 		if(is_prefix(command, "continue")) {
-			resume(pid);
-			wait_on_signal(pid);
+			process->resume();
+			process->wait_on_signal();
 		}
 
 		else {
