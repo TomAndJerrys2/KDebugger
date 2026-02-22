@@ -7,8 +7,6 @@
 #include <algorithm>
 #include <sstream>
 
-#include <exception>
-
 // Linux system interfaces
 #include <sys/ptrace.h>
 #include <sys/types.h>
@@ -20,6 +18,7 @@
 // Private/Project-specific headers
 #include <libkdebugger/libkdebugger.hpp>
 #include <libkdebugger/process.hpp>
+#include <libkdebugger/error.hpp>
 
 namespace {
 	
@@ -119,12 +118,53 @@ namespace {
 
 		if(is_prefix(command, "continue")) {
 			process->resume();
+			auto reason = process->wait_on_signal();
 			process->wait_on_signal();
 		}
 
 		else {
 			std::cerr << "> Unknown Command entered.\n";
 		}
+	}
+}
+
+namespace {
+
+	void main_loop(std::unique_ptr<kdebugger::process> & process) {
+		char* line = nullptr;
+		while((line = readline("KDebugger> ")) != nullptr) {
+			std::string line_str {};
+
+			if(line == std::string_view("")) {
+				free(line);
+
+				if(history_length > 0)
+					line_str = history_list()[history_length - 1] -> line;
+			}
+
+			else {
+				line_str = line;
+				
+				// add command line to history
+				// provided by libedit
+				add_history(line);
+				
+				// release the line buffer
+				free(line);
+			}
+
+			if(!line_str.empty()) {
+				// handles the command given to KDebugger
+				try {
+					handle_command(process, line);
+				} 
+				
+				catch(const kdebugger::error & err) {
+					std::cout << err.what() << '\n';
+				}
+			}
+		}
+
 	}
 }
 
@@ -136,47 +176,12 @@ int main(int argc, const char** argv) {
 		return -1;
 	}
 
-	pid_t pid = attach(argc, argv);
-
-	int wait_status;
-	int options {0};
-
-	if(waitpid(pid, &wait_status, options) < 0)
-		std::perror("waitpid failed.\n");
-
-	char* line = nullptr;
-	while((line = readline("KDebugger> ")) != nullptr) {
-		std::string line_str {};
-
-		if(line == std::string_view("")) {
-			free(line);
-
-			if(history_length > 0)
-				line_str = history_list()[history_length - 1] -> line;
-		}
-
-		else {
-			line_str = line;
-			
-			// add command line to history
-			// provided by libedit
-			add_history(line);
-			
-			// release the line buffer
-			free(line);
-		}
-
-		if(!line_str.empty()) {
-			// handles the command given to KDebugger
-			try {
-				handle_command(pid, line);
-			} 
-			
-			catch(const std::exception & err) {
-				std::cout << err.what() << '\n';
-			}
-		}
+	try {
+		auto process = attach(argc, argv);
+		main_loop(process);
 	}
 
-	return EXIT_SUCCESS;
+	catch (const kdebugger::error & err) {
+		std::cout << err.what() << '\n';
+	}
 }
