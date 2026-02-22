@@ -14,6 +14,14 @@ namespace kdebugger {
 		terminated
 	};
 
+	struct stop_reason {
+		
+		stop_reason(int wait_status);
+
+		process_state reason;
+		std::uint8_t info;
+	};
+
 	class process {
 		
 		private:	
@@ -39,7 +47,7 @@ namespace kdebugger {
 			// attach to a currently running PID, return a static unique instance of ID
 			static std::unique_ptr<process> attach(const pid_t pid);
 
-			auto signal() const;
+			stop_reason wait_on_signal() const;
 			
 			// resume the current process if halted
 			void resume();
