@@ -4,12 +4,15 @@
 > [!NOTE]
 > This Project is still heavily under development and may lack some
 > given features at the current time. These will be implemented :)
+<br>
 
 > [!IMPORTANT]
 > This is a strictly Linux Based Debugger (for now) and complies with
 > the POSIX standards. If you're not running linux and intend to test
 > this on windows - I will eventually come to make a port :)
+<br>
 
+# Foreword
 A Linux debugger (and eventually a profiler) built with C++
 
 This was something I have wanted to do for a while and all the better
