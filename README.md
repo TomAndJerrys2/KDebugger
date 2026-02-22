@@ -1,4 +1,15 @@
 # KDebugger
+![License](https://img.shields.io/badge/license-GPL-green)
+
+> **Note**
+> This Project is still heavily under development and may lack some
+> given features at the current time. These will be implemented :)
+
+> **Warning**
+> This is a strictly Linux Based Debugger (for now) and complies with
+> the POSIX standards. If you're not running linux and intend to test
+> this on windows - I will eventually come to make a port :)
+
 a Linux debugger (and eventually a profiler) built with C++
 
 This was something I have wanted to do for a while and all the better
@@ -23,18 +34,32 @@ to convert functions and make them asynchronously and add coroutines, mabye
 some concepts and meta-template programming - these will be in the separate 
 given branches for people to see how these conversions work
 
-# Features
-
-TBD
-
 # Project File Structure
+```
+.
+├── CMakeLists.txt
+├── LICENSE
+├── include
+│   └── libkdebugger
+│       ├── error.hpp
+│       ├── libkdebugger.hpp
+│       ├── pipe.hpp
+│       └── process.hpp
+├── src
+│   ├── CMakeLists.txt
+│   ├── libkdebugger.cpp
+│   ├── pipe.cpp
+│   └── process.cpp
+├── test
+│   ├── CMakeLists.txt
+│   └── tests.cpp
+├── tools
+│   ├── CMakeLists.txt
+│   └── kdebugger.cpp
+└── vcpkg.json
+```
+# Build
 
-TBD
+## 📜 License
 
-# Build the Project
-
-TBD
-
-# Licenses
-
-
+This project is licensed under the GPL License.
