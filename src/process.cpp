@@ -6,10 +6,26 @@
 // Private / Project-specific headers
 #include <libkdebugger/process.hpp>
 #include <libkdebugger/error.hpp>
+#include <libkdebugger/pipe.hpp>
+
+namespace {
+	
+	void exit_with_perror(kdebugger::pipe & channel, std::string & prefix) {
+		auto message = prefix + ": " + std::strerror(errno);
+
+		channel.write(
+			reinterpret_cast<std::byte *> (message.data(), message.size());		
+		);
+
+		exit(-1);
+	}
+}
 
 // launches a given process via a path
 std::unique_ptr<kdebugger::process> kdebugger::process::launch(const std::filesystem::path path) {
-	
+	// set close_on_exec to be true --> pipe.hpp/pipe.cpp
+	kdebugger::pipe channel(true)
+
 	pid_t pid {};
 	if((pid = fork()) < 0) {
 		error::send_errno("fork failed");
@@ -17,12 +33,13 @@ std::unique_ptr<kdebugger::process> kdebugger::process::launch(const std::filesy
 
 	if(pid == 0) {
 		
+		channel.close_read();
 		if(ptrace(PTRACE_TRACEME, 0, nullptr, nullptr) < 0) {
-			error::send_errno("Tracing failed");
+			exit_with_perror(channel, "Tracing failed");
 		}
 
 		if(execlp(path.c_str(), path.c_str(), nullptr) < 0) {
-			error::send_errno("exec failed");
+			exit_with_perror(channel, "exec failed");
 		}
 	}
 
