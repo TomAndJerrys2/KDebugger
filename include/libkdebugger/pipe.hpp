@@ -19,6 +19,12 @@ namespace kdebugger {
 			constexpr int get_write() const {
 				return m_Fds[write_fd];
 			}
+			
+			constexpr int release_read() noexcept;
+			constexpr int release_write() noexcept;
+
+			void close_read() const;
+			void close_write() const;
 
 			// read and write from 64K buffer
 			std::vector<std::byte> read();
@@ -27,6 +33,6 @@ namespace kdebugger {
 		private:
 			int m_Fds[2];
 			static constexpr unsigned int read_fd {0};
-		    static constexpr unsigned int write_fd {0};	
+		   	static constexpr unsigned int write_fd {0};	
 	};
 }
