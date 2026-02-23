@@ -8,7 +8,9 @@
 namespace kdebugger {
 	// ID of a given 64bit register
 	enum class register_id {
-		// empty for now
+		#define DEFINE_REGISTER(name, dwarf_id, size, offset, size, format) name
+		#include <libkdebugger/detail/registers.inc>
+		#undef DEFINE_REGISTER
 	};
 	
 	// type of register we are accessing
@@ -34,6 +36,9 @@ namespace kdebugger {
 	};
 
 	inline constexpr const register_info g_register_infos[] = {
-		// TBD
+		#define DEFINE_REGISTER (name, dwarf_id, size, offset, type, format) \
+			{ register_id::name, #name, dwarf_id, size, offset, type, format}
+		#include <libkdebugger/detail/registers.inc>
+		#undef
 	};
 }
