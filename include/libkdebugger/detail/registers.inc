@@ -26,4 +26,9 @@
 	DEFINE_REGISTER(name, -1, 1, GPR_OFFSET(super) + 1, \
 		register_type::sub_gpr, register_format::uint)
 
+// helper macro for 8bit LOW sub GPR
+#define DEFINE_GPR_8L(name, super) \
+	DEFINE_REGISTER(name, -1, 1, GPR_OFFSET(super), \
+		register_type::sub_gpr, register_format::uint)
+
 
