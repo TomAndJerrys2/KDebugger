@@ -114,16 +114,19 @@ DEFINE_GPR_8L(r14b, r14), DEFINE_GPR_8L(r15b, r15),
 
 // Helper Macros for MMX registers
 
+// SSE2 
 #define DEFINE_FP_ST(number) \
 	DEFINE_REGISTER(st ## number, (33 + number), 16, \
 		(FPR_OFFSET(st_space) + number * 16), register_type::fpr, \
 			register_format::long_double)
 
+// MMX
 #define DEFINE_FP_MM(number) \
 	DEFINE_REGISTER(mm ## number, (41 + number), 8, \
 		(FPR_OFFSET(st_space) + number * 16), register_type::fpr, \
 			register_format::vector)
 
+// MMX
 #define DEFINE_FP_XMM(number) \
 	DEFINE_REGISTER(xmm ## number, (17 + number), 16, \
 		(FPR_OFFSET(xmm_space) + number * 16), register_type::fpr, \
