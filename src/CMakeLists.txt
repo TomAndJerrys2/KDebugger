@@ -3,6 +3,7 @@
 add_library(libkdebugger libkdebugger.cpp)
 add_library(libkdebugger process.cpp)
 add_library(kdebugger::libkdebugger ALIAS libkdebugger)
+add_library(libkdebugger ... registers.cpp)
 
 # property of where to output the libkdebugger library
 # and what to call the binaries
