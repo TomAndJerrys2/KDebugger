@@ -1,5 +1,8 @@
 #pragma once
 
+#include <sys/users.h>
+#include <libkdebugger/register_info.hpp>
+
 namespace kdebugger {
 
 	class process;
@@ -8,6 +11,8 @@ namespace kdebugger {
 		private:
 			
 			friend process;
+			
+			// from sys/users.h
 			user m_Data;
 			process * m_Process
 			
