@@ -1,6 +1,10 @@
+// generic headers
+#include <iostream>
+
 // Project specific headers
 #include <libkdebugger/registers.hpp>
 #include <libkdebugger/bit.hpp>
+#include <libkdebugger/process.hpp>
 
 // reading a specific valued register
 kdebugger::registers::value kdebugger::registers::read(const register_info & info) const {
@@ -45,4 +49,21 @@ kdebugger::registers::value kdebugger::registers::read(const register_info & inf
 // writing to a register in bytes
 void sdb::registers::write(const register_info & info, value val) {
 	auto bytes = as_bytes(m_Data);
+
+	// visit -> takes a callback && std::variant to call a function
+	// with the value stored in our type-safe union
+	std::visit([&](auto & v) {
+		if(sizeof(v) == info.size) {
+			auto val_bytes = as_bytes(v);
+
+			std::copy(val_bytes, val_bytes + sizeof(v),
+					bytes + info.offset);
+		}	
+
+		else {
+			std::cerr << "kdebugger::register::write called w/ "
+				"mismatched register value and sizes";
+			std::terminate();
+		}
+	}, val);
 }
