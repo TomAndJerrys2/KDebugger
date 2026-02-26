@@ -108,7 +108,8 @@ TEST_CASE("Write register works", "[register]") {
 
 	proc->resume();
 	proc->wait_on_signal();
-
+	
+	// test case for data integrity via IPC
 	auto & regs = proc->get_registers();
 	regs.write_by_id(register_id::rsi, 0xcafecafe);
 
@@ -125,4 +126,14 @@ TEST_CASE("Write register works", "[register]") {
 
 	output = channel.read();
 	REQUIRE(to_string_view(output) == "0xba5eba11");
+	
+	// test case for SSE registers
+	regs.write_by_id(register_id::xmm0, 42.24);
+	proc->resume();
+	proc->wait_on_signal();
+
+	output = channel.read();
+	REQUIRE(to_string_view(output) == "42.24");
 }
+
+
