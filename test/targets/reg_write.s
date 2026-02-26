@@ -23,6 +23,9 @@ main:
 	syscall
 	movq %rax, %r12
 
+	# Print contents of MM0
+	movq %mm0, %rsi
+
 	leaq hex_format(%rip), %rdi
 	movq $0, %rax
 	call printf@plt
