@@ -2,6 +2,8 @@
 
 // General headers
 #include <cstring>
+#include <vector>
+#include <string_view>
 
 // Private / Project-specific headers
 #include <libkdebugger/types.hpp>
@@ -36,5 +38,14 @@ namespace kdebugger {
 		std::memcpy(&ret, &src, sizeof(From));
 
 		return ret;
+	}
+
+	inline std::string_view to_string_view(const std::byte * data, std::size_t size) {
+		return { reinterpret_cast<const char * > (data), size };
+	}
+	
+	// wrapper function overload for a vector input
+	inline std::string_view to_string_view(const std::vector<std::byte> & data) {
+		return to_string_view(data.data(), data.size())
 	}
 }
