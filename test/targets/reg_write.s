@@ -2,9 +2,10 @@
 
 .section .data
 
-.section .text
+hex_format: .asciz "%#x"	# x87 & MMX GPRs
+float_format: .asciz "%.2f"	# SSE FPRs
 
-hex_format: .asciz "%#x"
+.section .text
 
 .macro trap
 	# Trap
@@ -23,6 +24,13 @@ main:
 	syscall
 	movq %rax, %r12
 
+	leaq hex_format(%rip), %rdi
+	movq $0, %rax
+	call printf@plt
+	movq $0, %rdi
+	call fflush@plt
+	trap
+	
 	# Print contents of MM0
 	movq %mm0, %rsi
 
@@ -31,7 +39,13 @@ main:
 	call printf@plt
 	movq $0, %rdi
 	call fflush@plt
+	trap
 
+	leaq float_format(%rip), %rdi
+	movq $1, %rax
+	call printf@plt
+	movq $0, %rdi
+	call fflush@plt
 	trap
 
 	popq %rbp
