@@ -4,6 +4,8 @@
 
 .section .text
 
+hex_format: .asciz "%#x"
+
 .macro trap
 	# Trap
 	movq $62, %rax
@@ -20,6 +22,12 @@ main:
 	movq $39, %rax
 	syscall
 	movq %rax, %r12
+
+	leaq hex_format(%rip), %rdi
+	movq $0, %rax
+	call printf@plt
+	movq $0, %rdi
+	call fflush@plt
 
 	trap
 
