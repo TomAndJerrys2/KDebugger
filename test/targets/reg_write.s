@@ -4,6 +4,14 @@
 
 .section .text
 
+.macro trap
+	# Trap
+	movq $62, %rax
+	movq %r12, %rdi
+	movq $5, %rsi
+	syscall	
+.endm
+
 main:
 	push %rbp
 	movq %rsp, %rbp
@@ -13,11 +21,7 @@ main:
 	syscall
 	movq %rax, %r12
 
-	# Trap
-	movq $62, %rax
-	movq %r12, %rdi
-	movq $5, %rsi
-	syscall	
+	trap
 
 	popq %rbp
 	movq $0, %rax
