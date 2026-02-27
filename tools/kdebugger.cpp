@@ -44,6 +44,29 @@ namespace {
 			std::cerr << "No help available!\n";
 		}
 	}
+
+	// handles commands relating to reading and writing
+	// to and from registers
+	void handle_register_command(kdebugger::process & process, 
+			const std::vector<std::string> & args) {
+		
+		if(args.size() < 2) {
+			print_help({"help", "register"});
+			return;
+		}
+
+		if(is_prefix(args[1], "write")) {
+			handle_register_read(process, args);
+		}
+
+		if(is_prefix(arg[1], "write")) {
+			handle_register_write(process, args);
+		}
+		
+		else {
+			print_help({"help", "register"});
+		}
+	}
 }
 
 namespace {
