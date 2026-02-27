@@ -2,8 +2,9 @@
 
 .section .data
 
-hex_format: .asciz "%#x"	# x87 & MMX GPRs
-float_format: .asciz "%.2f"	# SSE FPRs
+hex_format: 		.asciz "%#x"	# x86 & MMX GPRs
+float_format: 		.asciz "%.2f"	# SSE FPRs
+long_float_format: 	.asciz "%.2Lf"	# x87 "Long-float" FPRs
 
 .section .text
 
@@ -47,6 +48,16 @@ main:
 	call printf@plt
 	movq $0, %rdi
 	call fflush@plt
+	trap
+
+	subq $16, %rsp
+	fstpt (%rsp)
+	leaq long_float_format(%rip), %rdi
+	movq $0, %rax
+	call printf@plt
+	movq $0, %rdi
+	call fflush@plt
+	addq $16, %rsp
 	trap
 
 	popq %rbp
