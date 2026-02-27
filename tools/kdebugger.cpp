@@ -8,6 +8,11 @@
 #include <sstream>
 #include <memory>
 
+// formatting options - will refactor to standard 20 usage
+// after build completion
+#include <fmt/format.h>
+#include <fmt/ranges.h>
+
 // Linux system interfaces
 #include <sys/ptrace.h>
 #include <sys/types.h>
@@ -42,6 +47,24 @@ namespace {
 
 		else {
 			std::cerr << "No help available!\n";
+		}
+	}
+
+	void handle_register_read(kdebugger::process & process, 
+			const std::vector<std::string> & args) {
+		
+		auto format = [] (auto t) {
+			if constexpr (std::is_floating_point_v<decltype(t)>) {
+				return fmt::format("{}", t);
+			}
+
+			else if constexpr (std::is_integral_v<decltype(t)>) {
+				return fmt::format("{:#0{}x}", t, (sizeof(t) * 2) + 2);
+			}
+
+			else {
+				return fmt::format("[{:#04x}]", fmt::join(t, ","));
+			}
 		}
 	}
 
