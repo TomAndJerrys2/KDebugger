@@ -166,15 +166,20 @@ TEST_CASE("Read register works", "[register]")  {
 
 	proc->resume();
 	proc->wait_on_signal();
+	
 
 	REQUIRE(regs.read_by_id_as<byte64> (register_id::mm0)
 			== to_byte64(0xba5eb11ull));
 
 	proc->resume();
 	proc->wait_on_signal();
+	
+	// we use dyadic rationals here, reading bit representations
+	// of floating-point values is somewhat tricky. However exponents
+	// of powers of 2 are easily represented hence the .125 here
 
 	REQUIRE(regs.read_by_id_as<byte128> (register_id::mm0) 
-			== to_byte128(64.128));
+			== to_byte128(64.125));
 
 	proc->resume();
 	proc->wait_on_signal();
