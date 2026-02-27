@@ -22,6 +22,31 @@
 #include <libkdebugger/error.hpp>
 
 namespace {
+
+	// Prints a help menu of commands for debugging
+	// a program, allows the user to interact
+	void print_help(const std::vector<std::string> & args) {
+		if(args.size() == 1) {
+			std::cerr << R"(Available Commands:
+				continue - Resume the process
+				register - Commands for operating on registers)";
+		}
+
+		else if(is_prefix(args[1], "register")) {
+			std::cerr << R"(Available commands
+				read
+				read <register_name>
+				read all
+				write <register_name> <value>)";
+		}
+
+		else {
+			std::cerr << "No help available!\n";
+		}
+	}
+}
+
+namespace {
 	
 	// will be properly ported to system tomorrow
 
@@ -117,10 +142,8 @@ namespace {
 		auto args = split(current_line, ' ');
 		auto command = args[0];
 
-		if(is_prefix(command, "continue")) {
-			process->resume();
-			auto reason = process->wait_on_signal();
-			process->wait_on_signal();
+		if(is_prefix(command, "help")) {
+			print_help();	
 		}
 
 		else {
