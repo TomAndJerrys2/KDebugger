@@ -202,3 +202,13 @@ void kdebugger::process::write_gprs(const user_regs_struct & gprs) {
 	if(ptrace(PTRACE_SETREGS, m_Pid, nullptr, &gprs) < 0)
 		error::send_errno("Could not write geenral purpose registers");
 }
+
+// implementing creating a break point site in memory
+kdebugger::breakpoint_site & kdebugger::process::create_breakpoint_site(virt_addr address) {
+	if(m_BreakPointSites.contains_address(address)) {
+		error::send("Breakpoint at address has already been created" 
+				+ std::to_string(address.addr()));
+	}
+
+	return m_BreakPointSites.push(std::unique_ptr<breakpoint_site> (new breakpoint_site (*this, address)));
+}	
