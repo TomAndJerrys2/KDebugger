@@ -14,6 +14,14 @@ namespace kdebugger {
 		
 		private:
 			using points_t = std::vector<std::unique_ptr<Stoppoint>>;
+			
+			// find by ID or address as iterator types
+			typename points_t::iterator find_by_id(typename Stoppoint::id_type id);
+			typename points_t::const_iterator find_by_id(typename Stoppoint::id_type id) const;
+
+			typename points_t::iterator find_by_address(virt_addr address);
+			typename points_t::const_iterator find_by_address(virt_addr address) const;		
+
 			points_t m_Stoppoints;
 
 		public:
