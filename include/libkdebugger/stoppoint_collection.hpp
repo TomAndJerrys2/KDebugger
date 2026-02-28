@@ -50,3 +50,14 @@ namespace kdebugger {
 			}
 	}
 }
+
+// implementations for stoppoint collection
+// best to implement them here as there templates
+namespace kdebugger {
+	
+	template <class Stoppoint>
+	Stoppoint & stoppoint_collection<Stoppoint>::push(std::unique_ptr<Stoppoint> bs) {
+		m_Stoppoints.push_back(std::move(bs));
+		return *m_Stoppoints.back();
+	}
+}
