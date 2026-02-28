@@ -103,6 +103,46 @@ namespace {
 			print_help({"help", "registers"});
 		}
 	}
+	
+	// parse a writing value to the correct size of the given register
+	kdebugger::registers::value parse_register_value(kdebugger::register_info info
+			std::string_view text) {
+		
+		try {
+			if(info.format == kdebugger::register_format::uint) {
+				switch(info.size) {
+					case 1:
+						return kdebugger::to_integral<std::uint8_t> (text, 16).value();
+
+					case 2:
+						return kdebugger::to_integral<std::uint8_t> (text, 16).value();
+
+					case 4:
+						return kdebugger::to_integral<std::uint8_t> (text, 16).value();
+
+					case 8:
+						return kdebugger::to_integral<std::uint8_t> (text, 16).value();
+				}
+			}
+			
+			else if(info.format == kdebugger::register_format::double_float) 
+				return kdebugger::to_float<double> (text).value();
+
+			else if(info.format == kdebugger::register_format::long_double)
+				return kdebugger::to_float<long double> (text).value();
+
+			else if(info.format == kdebugger::register_format::vector) {
+				if(info.size == 8)
+					return kdebugger::parse_vector<8> (text);
+
+				else if(info.size == 16)
+					return kdebugger::parse_vector<16> (text);
+			}
+		}
+
+		catch(...) {}
+		kdebugger::error::send("Invalid format!\n");
+	}
 
 	// handles writing to a given register with a value
 	void handle_register_write(kdebugger::process & process, 
