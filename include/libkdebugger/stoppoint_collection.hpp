@@ -3,6 +3,7 @@
 // general header includes
 #include <vector>
 #include <memory>
+#include <algorithm>
 
 // Private / project-specific headers
 #include <libkdebugger/types.hpp>
@@ -67,5 +68,23 @@ namespace kdebugger {
 	Stoppoint & stoppoint_collection<Stoppoint>::push(std::unique_ptr<Stoppoint> bs) {
 		m_Stoppoints.push_back(std::move(bs));
 		return *m_Stoppoints.back();
+	}
+	
+	template <class Stoppoint>
+	auto stoppoint_collection<Stoppoint>::find_by_id(typename Stoppoint::id_type id)
+		-> typename points_t::iterator {
+		return std::find_if(
+			begin(m_Stoppoints), end(m_Stoppoints),
+
+			[=] (auto & point) {
+				return point->id() == m_Id;
+			}		
+		);
+	} 
+
+	template <class Stoppoint>
+	auto stoppoint_collection<Stoppoint>::find_by_id(typename Stoppoint::id_type id)
+		-> typename points_t::const_iterator {
+		return const_cast<stoppoint_collection *> (this)->find_by_id(id);
 	}
 }
