@@ -25,6 +25,17 @@ namespace kdebugger {
 		return ret;
 	}
 
+	// specialization for to_integral for std::byte
+	template <>
+	inline std::optional<std::byte> to_integral(std::string_view sv, int base) {
+		auto uint8 = to_integral<std::uint8_t> (sv, base);
+		
+		if(uint8)
+			return static_cast<std::byte> (*uint8);
+
+		return std::nullopt;
+	}
+
 	template <class F>
 	std::optional<F> to_float(std::string_view sv) {
 		F ret;
