@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/personality>
+#include <sys/uio.h>
 
 // Private / Project-specific headers
 #include <libkdebugger/process.hpp>
@@ -254,4 +255,24 @@ kdebugger::stop_reason kdebugger::process::step_instruction() {
 		to_reenable.value()->enable();
 
 	return reason;
+}
+
+std::vector<std::byte> kdebugger::process::read_memory(virt_addr address, std::size_t amount) const {
+	std::vector<std::byte> ret{amount};
+	
+	iovec local_desc {ret.data(), ret.size()};
+	std::vector<iovec> remote_descs;
+	while(amount > 0) {
+		auto up_to_next_page = 0x1000 - (address.addr() & 0xfff);
+		auto chunk_size = std::min(amount, up_to_next_page);
+		remote_descs.push_back({reinterpret_cast<void *>(address.addr()), chunk_size});
+		
+		amount -= chunk_size;
+		address += chunk_size;
+	}
+
+	if(process_vm_readv(m_Pid, &local_desc, 1, remote_descs.data(), remote_descs.size(), 0) < 0)
+		error::send_errno("Could not read process memory!\n");
+
+	return ret;
 }	
