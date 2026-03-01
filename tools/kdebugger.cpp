@@ -233,6 +233,24 @@ namespace {
 			process.create_breakpoint_site(kdebugger::virt_addr{*address}).enable();
 			return;
 		}
+
+		auto id = kdebugger::to_integral<kdebugger::breakpoint_site::id_type>(args[2]);
+		if(!id) {
+			std::cerr << "Command expects a breakpoint id\n"
+			return;
+		}
+
+		if(is_prefix(command, "enable")) {
+			process.breakpoint_sites().get_by_id(*id).enable();
+		}
+
+		else if(is_prefix(command, "disable")) {
+			process.breakpoint_sites().get_by_id(*id).disable();
+		}
+
+		else if(is_prefix(command, "delete")) {
+			process.breakpoint_sites().remove_by_id(*id);
+		}
 	}
 }
 
