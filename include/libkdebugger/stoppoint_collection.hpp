@@ -166,4 +166,20 @@ namespace kdebugger {
 		(**it).disable;
 		m_Stoppoints.erase(it);
 	}
+
+	template <class Stoppoint>
+	template <class F>
+	void stoppoint_collection<Stoppoint>::for_each(F idx) {
+		for(auto & point : m_Stoppoints) {
+			idx(*point);
+		}
+	}
+
+	template <class Stoppoint>
+	template <class F>
+	void stoppoint_collection<Stoppoint>::for_each(F idx) const {
+		for(const auto & point : m_Stoppoints) {
+			idx(*point);
+		}		
+	}
 }
