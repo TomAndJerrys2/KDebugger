@@ -91,6 +91,21 @@ std::unique_ptr<kdebugger::process> kdebugger::process::attach(const pid_t pid) 
 // resumes a process being held
 void sdb::process::resume() {
 	
+	auto pc = get_pc();
+	if(m_BreakPointSites.enable_stoppoint_at_address(pc)) {
+		auto & bp = m_BreakPoinSites.get_by_address(pc);
+		bp.disable();
+
+		if(ptrace(PTRACE_SINGLESTEP, m_Pid, nullptr, nullptr) < 0)
+			error::send_errno("Failed to single-step!");
+
+		int wait_status;
+		if(waitpid(m_Pid, &wait_status, 0) < 0)
+			error::send_errno("waitpid failed");
+
+		bp.enable();
+	}
+
 	if(ptrace(PTRACE_CONT, m_Pid, nullptr, nullptr) < 0) {
 		error::send_errno("Could not resume Process");
 	}
