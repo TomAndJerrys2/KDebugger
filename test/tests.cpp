@@ -1,6 +1,8 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <fstream>
+#include <elf.h>
+#include <regex>
 
 #include <catch2/catch_test_macros.hpp>
 #include <libkdebugger/process.hpp>
@@ -56,6 +58,26 @@ namespace {
 
 		pclose(pipe);
 		kdebugger::error::send("Could not find section load bias\n");
+	}
+
+	virt_addr get_load_address(pid_t pid, std::int64_t offset) {
+		std::ifstream maps("/proc/" + std::to_string(pid), + "/maps/");
+		std::regex map_regex(R"((\w+)-\w+ ..(.). (\w+))");
+		std::string data;
+
+		while(std::getline(maps, data)) {
+			std::smatch groups;
+			std::regex_search(data, groups, map_regex);
+
+			if(groups[2] == 'x') {
+				auto low_range = std::stol(groups[1], nullptr, 16);
+				auto file_offset = std::stol(groups[3], nullptr, 16);
+
+				return virt_addr(offset - file_offset + low_range);
+			}
+		}
+
+		kdebugger::error::send("Could not find load address");
 	}
 }
 
