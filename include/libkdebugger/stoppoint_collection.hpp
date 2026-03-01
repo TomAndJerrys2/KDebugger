@@ -7,6 +7,7 @@
 
 // Private / project-specific headers
 #include <libkdebugger/types.hpp>
+#include <libkdebugger/error.hpp>
 
 namespace kdebugger {
 
@@ -104,7 +105,7 @@ namespace kdebugger {
 	template <class Stoppoint>
 	auto stoppoint_collection<Stoppoint>::find_by_address(virt_addr address) const
 		-> typename points_t::const_iterator {
-		return const_cast<stoppoint_collection *>(this)->find_by_address(address);
+		return const_cast<stoppoint_collection *> (this)->find_by_address(address);
 	}
 
 	template <class Stoppoint>
@@ -120,5 +121,20 @@ namespace kdebugger {
 	template <class Stoppoint>
 	bool stoppoint_collection<Stoppoint>::enabled_stoppoint_at_address(virt_addr address) const {
 		return contains_address(address) && get_by_address(address).is_enabled();
+	}
+
+	template <class Stoppoint>
+	Stoppoint & stoppoint_collection<Stoppoint>::get_by_id(typename Stoppoint::id_type id) {
+		auto it = find_by_id(id);
+
+		if(it == end(m_Stoppoints))
+			error::send("Invalid stoppoint id");
+
+		return **it;
+	}
+
+	template <class Stoppoint>
+	Stoppoint & stoppoint_collection<Stoppoint>::get_by_id(typename Stoppoint::id_type id) const {
+		return const_cast<stoppoint_collection *> (this)->get_by_id(id);
 	}
 }
