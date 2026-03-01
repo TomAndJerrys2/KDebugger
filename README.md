@@ -15,20 +15,27 @@
 
 # Foreword
 A Linux debugger (and eventually a profiler) built with C++ for 
-extendable testing and feature-rich debugging. As it stand currently
-This project only features a LLDB/GDB inspired debugger, once complete
-I'll move on to including a profiler, unit-testing automation, 
-disssssembler, flamegraph support and possible a unique, new build system
+extendable testing and feature-rich debugging; As it stand currently
+this project only features a LLDB/GDB inspired debugger. Cnce complete,
+I'll move on to including a profiler:
 
-This was something I have wanted to do for a while and all the better
+    -  unit-testing automation, 
+    -  disssssembler, 
+    -  flamegraph support 
+    - and... Possibly a unique, new build system
+
+This was something I have wanted to do for a while - and all the better
 with my love for C++. This project will and currently uses C++17 however
-I'm looking too (after completion) to incorperate newer C++20 and 23 features
+I'm looking to (after completion) incorperate newer C++20 and 23 features
 like coroutines etc... that may help utilize a more modern, asynchronous
 architecture.
 <br>
 This project features a debugger tool that I personally use on my Linux
-Fedora build for development. Following this I'll make my own dissasembler
-and other tools and eventually - fork them into a stuite of tools
+Fedora build for development. Following this there is still a lot of room
+for improvement and a lot of other new features I am looking to add. Once I
+start building out the multi-threading architecture for process' it should
+be more apparent why this project, would be a great choice to put in your
+toolchain. Experiment and have fun! all the feedback is appreciated!
 <br>
 # Why
 I've always wanted to built a debugger and the tools surrounding it.
