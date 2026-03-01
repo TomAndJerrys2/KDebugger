@@ -233,4 +233,25 @@ kdebugger::breakpoint_site & kdebugger::process::create_breakpoint_site(virt_add
 	}
 
 	return m_BreakPointSites.push(std::unique_ptr<breakpoint_site> (new breakpoint_site (*this, address)));
+}
+
+// for stepping over instructions using single step
+kdebugger::stop_reason kdebugger::process::step_instruction() {
+	std::optional<breakpoint_site *> to_reenable;
+	auto pc = get_pc();
+
+	if(m_BreakPointSites.enable_stoppoint_at_address(pc)) {
+		auto & bp = m_BreakPointSites.get_by_address(pc);
+		bp.disable();
+		to_reenable = &bp;
+	}
+
+	if(ptrace(PTRACE_SINGLESTEP, m_Pid, nullptr, nullptr) < 0)
+		error::send_errno("Could not single step");
+
+	auto reason = wait_on_signal();
+	if(to_reenable)
+		to_reenable.value()->enable();
+
+	return reason;
 }	
