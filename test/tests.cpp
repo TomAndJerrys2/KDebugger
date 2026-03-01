@@ -384,3 +384,15 @@ TEST_CASE("Breakpoint on address works", "[breakooint]") {
 	auto data = channel.read();
 	REQUIRE(to_string_view(data) == "Hello, kdebugger!\n");
 }
+
+TEST_CASE("Can remove breakpoint sites", "[breakpoint]") {
+	auto proc = process::launch("targets/run_endlessly");
+
+	auto & site = proc->create_breakpoint_site(virt_addr{42});
+	proc->create_breakpoint_site(virt_addr{43});
+	REQUIRE(proc->breakpoint_sites().size() == 2);
+
+	proc->breakpoint_sites().remove_by_id(site.id());
+	proc->breakpoint_sites().remove_by_address(virt_addr{43});
+	REQUIRE(proc->breakpoint_sites().empty());
+}
