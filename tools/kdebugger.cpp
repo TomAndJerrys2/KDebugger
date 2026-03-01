@@ -280,7 +280,9 @@ namespace {
 		// a Program name is passed
 		else {
 			const char* program_path = argv[1];
-			return kdebugger::process::launch(program_path);
+			auto proc = kdebugger::process::launch(program_path);
+			fmt::print("Launched process with PID {}\n", proc->pid());
+			return proc;
 		}	
 	}
 
