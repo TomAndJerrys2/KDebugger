@@ -15,10 +15,7 @@ namespace {
 		auto ret = kill(pid, 0);
 		return (ret != -1 && errno != ESRCH);
 	}
-}
 
-namespace {
-	
 	char get_process_status(const pid_t pid) {
 		std::ifstream stat("/proc/" + std::to_string(pid) + "/stat");
 		std::string data;
@@ -27,6 +24,38 @@ namespace {
 		auto index_of_last_parenthesis = data.rfind(')');
 		auto index_of_status_indicator = index_of_last_parenthesis + 2;
 		return data[index_of_status_indicator];
+	}
+	
+	// gets section load bias via file offset
+	std::uint64_ t get_section_load_bias(std::filesystem::path path, Elf64_addr file_address) {
+		auto command = std::string("readelf -WS") + path.string();
+		auto pipe = popen(command.c_str(), "r");
+
+		std::regex text_regex(R"(PROGBITS\s+(\w+)\s+(\w+)\s+(\w+))");
+		char* line = nullptr;
+		std::size_t len {0};
+
+		while(getline(&line, &len, pipe)) {
+			std::cmatch groups;
+			
+			if(std::regex_search(line, groups, text_regex)) {
+				auto address = std::stol(groups[1], nullptr, 16);
+				auto offset = std::stol(groups[2], nullptr, 16);
+				auto size = std::stol(groups[3], nullptr, 16);
+
+				if(address <= file_address && file_address < (address + size)) {
+					free(line);
+					pclose(pipe);
+					return address - offset;
+				}
+			}
+		
+			free(line);
+			line = nullptr;
+		}
+
+		pclose(pipe);
+		kdebugger::error::send("Could not find section load bias\n");
 	}
 }
 
