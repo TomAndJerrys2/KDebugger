@@ -187,3 +187,28 @@ TEST_CASE("Read register works", "[register]")  {
 	REQUIRE(regs.read_by_id_as<long double> (register_id::st0)
 			== 64.125L);
 }
+
+// in case - checking if a breakpoint site can be created given a virtual address
+TEST_CASE("Can create a breakpoint site", "[breakpoint]") {
+	auto proc = process::launch("targets/run_endlessly");
+	auto & site = proc->create_breakpoint_site(virt_addr{42});
+	REQUIRE(site.address().addr() == 42);
+}
+
+// in case - checking if multiple breakpoint sites can be created
+// at multiple virtual address spaces
+TEST_CASE("breakpoint site ids increase", "[breakpoint]") {
+	auto proc = process::launch("targets/run_endlessly");
+
+	auto & s1 = proc->create_breakpoint_site(virt_addr{42});
+	REQUIRE((s1.address().addr() == 42);
+
+	auto & s2 = proc->create_breakpoint_site(virt_addr{43});
+	REQUIRE((s2.address().addr() == 43);
+
+	auto & s3 = proc->create_breakpoint_site(virt_addr{44});
+	REQUIRE((s3.address().addr() == 44);
+	
+	auto & s4 = proc->create_breakpoint_site(virt_addr{45});
+	REQUIRE((s4.address().addr() == 45);
+}
