@@ -34,9 +34,10 @@ namespace {
 	void print_help(const std::vector<std::string> & args) {
 		if(args.size() == 1) {
 			std::cerr << R"(Available Commands:
-				continue - Resume the process
+				continue   - Resume the process
 				breakpoint - Commands for operating on breakpoints
-				register - Commands for operating on registers)";
+				register   - Commands for operating on registers
+				step 	   - steps over a single instruction)";
 		}
 
 		else if(is_prefix(args[1], "register")) {
@@ -371,6 +372,11 @@ namespace {
 
 		else if(is_prefix(command, "breakpoint")) {
 			handle_breakpoint_command(*process, args);
+		}
+			
+		else if(is_prefix(command, "step")) {
+			auto reason = process->step_instruction();
+			print_stop_reason(*process, reason);
 		}
 
 		else {
