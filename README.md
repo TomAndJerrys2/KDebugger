@@ -17,7 +17,8 @@
 A Linux debugger (and eventually a profiler) built with C++ for 
 extendable testing and feature-rich debugging; As it stand currently
 this project only features a LLDB/GDB inspired debugger. Cnce complete,
-I'll move on to including a profiler: 
+I'll move on to including a profiler:
+
     -  unit-testing automation, 
     -  disssssembler, 
     -  flamegraph support 
