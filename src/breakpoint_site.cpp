@@ -38,3 +38,20 @@ void kdebugger::breakpoint_site::enable() {
 
 	m_isEnabled = true;
 }
+
+// disables a break point poking our restored data before in3
+void kdebugger::breakpoint_site::disable() {
+	if(!m_isEnabled)
+		return;
+
+	errno = 0;
+	std::uint64_t data = ptrace(PTRACE_PEEKDATA, m_Process->pid(), m_Address, nullptr);
+	if(errno != 0)
+		error::send_errno("Disabling breakpoint site failed\n");
+
+	auto restored_data = ((data & ~0xff) | static_cast<std::uint8_t>(m_SavedData));
+	if(ptrace(PTRACE_POKEDATA, m_Process->pid(), m_Address, restored_data) < 0)
+		error::send_errno("Disabling breakpoint site failed\n");
+
+	m_isEnabled = false;
+}
