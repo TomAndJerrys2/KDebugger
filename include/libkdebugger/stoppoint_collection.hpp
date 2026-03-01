@@ -87,4 +87,23 @@ namespace kdebugger {
 		-> typename points_t::const_iterator {
 		return const_cast<stoppoint_collection *> (this)->find_by_id(id);
 	}
+	
+	template <class Stoppoint>
+	auto stoppoint_collection<Stoppoint>::find_by_address(virt_addr address) 
+		-> typename points_t::iterator {
+		return std::find_if(
+			begin(m_Stoppoints), 
+			end(),
+			
+			[=] (auto & point) {
+				return point->at_address(address);
+			}
+		);
+	}
+
+	template <class Stoppoint>
+	auto stoppoint_collection<Stoppoint>::find_by_address(virt_addr address) const
+		-> typename points_t::const_iterator {
+		return const_cast<stoppoint_collection *>(this)->find_by_address(address);
+	}
 }
