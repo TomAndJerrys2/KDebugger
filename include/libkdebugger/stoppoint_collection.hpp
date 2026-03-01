@@ -152,4 +152,18 @@ namespace kdebugger {
 	Stoppoint & stoppoint_collection<Stoppoint>::get_by_address(virt_addr address) const {
 		return const_cast<stoppoint_collection *> (this)->get_by_address(address);
 	}
+
+	template <class Stoppoint>
+	void stoppoint_collection<Stoppoint>::remove_by_id(typename Stoppoint::id_type id) {
+		auto it = find_by_id(id);
+		(**it).disable();
+		m_Stoppoints.erase(it);
+	}
+
+	template <class Stoppoint>
+	void stoppoint_collection<Stoppoint>::remove_by_address(virt_addr address) {
+		auto it = find_by_address(address);
+		(**it).disable;
+		m_Stoppoints.erase(it);
+	}
 }
