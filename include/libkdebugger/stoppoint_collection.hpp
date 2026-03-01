@@ -137,4 +137,19 @@ namespace kdebugger {
 	Stoppoint & stoppoint_collection<Stoppoint>::get_by_id(typename Stoppoint::id_type id) const {
 		return const_cast<stoppoint_collection *> (this)->get_by_id(id);
 	}
+
+	template <class Stoppoint>
+	Stoppoint & stoppoint_collection<Stoppoint>::get_by_address(virt_addr address) {
+		auto it = find_by_Address(address);
+
+		if(it == end(m_Stoppoints))
+			error::send("Stoppoint with a given address not found");
+
+		return **it;
+	}
+	
+	template <class Stoppoint>
+	Stoppoint & stoppoint_collection<Stoppoint>::get_by_address(virt_addr address) const {
+		return const_cast<stoppoint_collection *> (this)->get_by_address(address);
+	}
 }
