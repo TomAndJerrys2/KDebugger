@@ -26,6 +26,28 @@
 #include <libkdebugger/process.hpp>
 #include <libkdebugger/error.hpp>
 
+// -- handling memory commands --
+namespace {
+	
+	// takes a process and its arguments at cmdline and prints
+	// what the user can do that is already implemented
+	void handle_memory_command(kdebugger::process & process, const std::vector<std::string> & args) {
+		if(args.size() < 3) {
+			print_help({"help", "memory"});
+			return;
+		}
+
+		if(is_prefix(args[1], "read"))
+			handle_memory_read_command(process, args);
+
+		else if(is_prefix(args[1], "write"))
+			handle_memory_write_command(process, args);
+		
+		else 
+			print_help({"help", "memory"});
+	}
+}
+
 // -- registers & print help ---
 namespace {
 
@@ -377,6 +399,10 @@ namespace {
 		else if(is_prefix(command, "step")) {
 			auto reason = process->step_instruction();
 			print_stop_reason(*process, reason);
+		}
+		
+		else if(is_prefix(command, "memory")) {
+			handle_memory_command(*process, args);
 		}
 
 		else {
