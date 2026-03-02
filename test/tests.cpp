@@ -396,3 +396,19 @@ TEST_CASE("Can remove breakpoint sites", "[breakpoint]") {
 	proc->breakpoint_sites().remove_by_address(virt_addr{43});
 	REQUIRE(proc->breakpoint_sites().empty());
 }
+
+TEST_CASE("Reading and writing memory works", "[memory]") {
+	bool close_on_exec {false};
+	kdebugger::pipe channel(close_on_exec);
+	auto proc = process::launch("targets/memory", true, channel.get_write());
+	channel.close_write();
+
+	proc->resume();
+	proc->wait_on_signal();
+
+	auto a_pointer = from_bytes<std::uint64_t>(channel.read().data());
+	auto data_vec = proc->read_memory(virt_addr {a_pointer}, 8);
+	auto data = from_bytes<std::uint64_t>(data_vec.data());
+
+	REQUIRE(data == 0xcafecafe);
+}
