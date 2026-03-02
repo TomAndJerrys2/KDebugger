@@ -60,14 +60,14 @@ namespace kdebugger {
 			invalid();
 
 		for(auto i {0}; i < N - 1; ++i) {
-			bytes[i] = to_integral<std::byte> ({ch, 4}, 16).value();
+			bytes[i] = kdebugger::to_integral<std::byte> ({ch, 4}, 16).value();
 			ch += 4;
 
 			if(*c++ != ',')
 				invalid();
 		}
 
-		bytes[N - 1] = to_integral<std::byte> ({ch, 4}, 16).value();
+		bytes[N - 1] = kdebugger::to_integral<std::byte> ({ch, 4}, 16).value();
 		ch += 4;
 
 		if(*ch++ != ']')
@@ -75,5 +75,29 @@ namespace kdebugger {
 
 		if(ch != text.end())
 			invalid();
+	}
+	
+	// overload for reading memory as a helper function
+	inline auto parse_vector(std::string_view text) {
+		auto invalid = [] {
+			kdebugger::error::send("Invalid format\n");
+		};
+
+		std::vector<std::byte> bytes;
+		const char* ch = text.data();
+
+		if(*ch++ != '[')
+			invalid();
+
+		while(*ch != ']') {
+			auto byte = kdebugger::to_integral<std::byte>({ch, 4}, 16);
+			bytes.push_back(byte.value());
+			ch += 4;
+		}
+
+		if(++c != text.end())
+			invalid();
+
+		return bytes;
 	}
 }
