@@ -98,6 +98,7 @@ namespace {
 			std::cerr << R"(Available Commands:
 				continue   - Resume the process
 				breakpoint - Commands for operating on breakpoints
+				memory     - Commands for operating on memory
 				register   - Commands for operating on registers
 				step 	   - steps over a single instruction)";
 		}
@@ -118,6 +119,13 @@ namespace {
 				enable <id>
 				set <address>
 			)";
+		}
+		
+		else if(is_prefix(args[1], "memory")) {
+			std::cerr << R"(Available commands:
+				read <address>
+				read <address> <number-of-bytes>
+				write <address> <bytes>)";
 		}
 
 		else {
