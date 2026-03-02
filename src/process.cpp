@@ -9,6 +9,7 @@
 #include <libkdebugger/process.hpp>
 #include <libkdebugger/error.hpp>
 #include <libkdebugger/pipe.hpp>
+#include <libkdebugger/bit.hpp>
 
 namespace {
 	
@@ -275,4 +276,28 @@ std::vector<std::byte> kdebugger::process::read_memory(virt_addr address, std::s
 		error::send_errno("Could not read process memory!\n");
 
 	return ret;
+}
+
+void kdebugger::process::write_memory(virt_addr address, span<const std::byte> data) {
+	std::size_t written {0};
+
+	while(written < data.size()) {
+		auto remaining = data.size() - written;
+		std::uint64_t word;
+
+		if(remaining >= 8)
+			word = from_bytes<std::uint64_t> (data.begin() + written);
+		else {
+			auto read = read_memory(address + written, 8);
+			auto word_data = reinterpret_cast<char *> (&word);
+			
+			std::memcpy(word_data, data.begin() + written, remaining);
+			std::memcpy(word_data + remaining, read.data() + remaining, 8 - remaining);
+		}
+
+		if(ptrace(PTRACE_POKEDATA, m_Pid, address + written, word) < 0)
+			error::send_errno("Failed to write memory");
+
+		written += 8;
+	}
 }	
