@@ -28,6 +28,31 @@
 
 // -- handling memory commands --
 namespace {
+
+	// handles reading memory
+	void handle_memory_read_command(kdebugger::process & process, const std::vector<std::string> & args) {
+		auto address = kdebugger::to_integral<std::uint64_t> (args[2], 16);
+		if(!address)
+			kdebugger::error::send("Invalid address format");
+
+		auto n_bytes {32};
+		if(args.size() == 4) {
+			auto bytes_arg = kdebugger::to_integral<std::size_t>(args[3]);
+			
+			if(!bytes_arg)
+				kdebugger::error::send("Invalid number of bytes");
+			
+			n_bytes = *bytes_arg;
+		}
+
+		auto data = process.read_memory(kdebugger::virt_addr {*address}, n_bytes);
+		for(std::size_t i {0}; i < data.size(); i += 16) {
+			auto start = data.begin() + i;
+			auto end = data.begin() + std::min(i + 16, data.size());
+
+			fmt::print("{:#016x} : {:02x}\n", *address + i, fmt::join(start, end, " "));
+		}
+	}
 	
 	// takes a process and its arguments at cmdline and prints
 	// what the user can do that is already implemented
