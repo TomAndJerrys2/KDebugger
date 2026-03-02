@@ -93,6 +93,11 @@ namespace kdebugger {
 			auto byte = kdebugger::to_integral<std::byte>({ch, 4}, 16);
 			bytes.push_back(byte.value());
 			ch += 4;
+
+			if(*ch == ',')
+				++ch;
+			else if(*ch != ']')
+				Invalid();
 		}
 
 		if(++c != text.end())
