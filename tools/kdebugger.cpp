@@ -29,13 +29,21 @@
 
 // -- handling disassemble commands --
 namespace {
-	
+
+	// prints the disassembly to the command line 	
 	void print_disassembly(kdebugger::process & process, kdebugger::virt_addr address, std::size_t n_instructions) {
 		kdebugger::disassembler dis(process);
 		auto instructions = dis.disassemble(n_instructions, address);
 		
 		for(auto & instr : instructions) {
 			fmt::print("{:#018x} : {}\n", instr.address.addr(), instr.text);
+		}
+	}
+
+	void handle_stop(kdebugger::process & process, kdebugger::stop_reason reason) {
+		print_stop_reason(process, reason);
+		if(reason.reason == kdebugger::process_state::stopped) {
+			print_disassembly(process, process.get_pc(), 5);
 		}
 	}
 }
