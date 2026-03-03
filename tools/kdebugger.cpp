@@ -25,6 +25,20 @@
 #include <libkdebugger/libkdebugger.hpp>
 #include <libkdebugger/process.hpp>
 #include <libkdebugger/error.hpp>
+#include <libkdebugger/disassembler.hpp>
+
+// -- handling disassemble commands --
+namespace {
+	
+	void print_disassembly(kdebugger::process & process, kdebugger::virt_addr address, std::size_t n_instructions) {
+		kdebugger::disassembler dis(process);
+		auto instructions = dis.disassemble(n_instructions, address);
+		
+		for(auto & instr : instructions) {
+			fmt::print("{:#018x} : {}\n", instr.address.addr(), instr.text);
+		}
+	}
+}
 
 // -- handling memory commands --
 namespace {
