@@ -5,6 +5,11 @@ add_library(libkdebugger process.cpp)
 add_library(libkdebugger ... registers.cpp)
 add_library(libkdebugger ... breakpoint_site.cpp)
 
+# I will end up building my own after this to draw away from
+# external dependencies like Zydis
+add_library(libkdebugger ... disassembler.cpp)
+target_linK_libraries(libkdebugger PRIVATE Zydis::Zydis)
+
 add_library(kdebugger::libkdebugger ALIAS libkdebugger)
 
 # property of where to output the libkdebugger library
