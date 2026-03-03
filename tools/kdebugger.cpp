@@ -46,6 +46,40 @@ namespace {
 			print_disassembly(process, process.get_pc(), 5);
 		}
 	}
+	
+	// handles formatting and calling disassembly to the cmdline
+	void handle_disassemble_command(kdebugger::process & process, const std::vector<std::string> & args) {
+		auto address = process.get_pc();
+		std::size_t n_instructions {5};
+		
+		auto it = args.begin() + 1;
+		while(it != args.end()) {
+			if(*it == "-a" && it + 1 != args.end()) {
+				++it;
+				auto opt_addr = kdebugger::to_integral<std::uint64_t>(*it++, 16);
+				
+				if(!opt_addr)
+					kdebugger::error::send("Invalid Address format!\n");
+
+				address = kdebugger::virt_addr {*opt_addr};
+			}
+
+			else if(*it == "-c" && it + 1 != args.end()) {
+				++it;
+				auto opt_n = kdebugger::to_integral<std::size_t>(*it++);
+
+				if(!opt_n)
+					kdebugger::error::send("Invalid instruction count");
+
+				n_instructions = *opt_n;
+			}
+
+			else {
+				print_help({"help", "disassemble"});
+				return;
+			}
+		}
+	}
 }
 
 // -- handling memory commands --
@@ -479,6 +513,10 @@ namespace {
 			
 		else if(is_prefix(command, "memory")) {
 			handle_memory_command(*process, args);
+		}
+		
+		else if(is_prefix(command, "disassemble")) {
+			handle_disassemble_command(*process, args);
 		}
 
 		else {
