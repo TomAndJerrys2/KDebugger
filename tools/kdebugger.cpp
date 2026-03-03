@@ -465,12 +465,18 @@ namespace {
 		else if(is_prefix(command, "breakpoint")) {
 			handle_breakpoint_command(*process, args);
 		}
+		
+		else if(is_prefix(command, "continue")) {
+			process->resume();
+			auto reason = process->wait_on_signal();
+			handle_stop(*process, reason);
+		}
 			
 		else if(is_prefix(command, "step")) {
 			auto reason = process->step_instruction();
-			print_stop_reason(*process, reason);
+			handle_stop(*process, reason);
 		}
-		
+			
 		else if(is_prefix(command, "memory")) {
 			handle_memory_command(*process, args);
 		}
