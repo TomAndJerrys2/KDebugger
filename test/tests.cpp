@@ -385,6 +385,7 @@ TEST_CASE("Breakpoint on address works", "[breakooint]") {
 	REQUIRE(to_string_view(data) == "Hello, kdebugger!\n");
 }
 
+// in case - checking if a breakpoint site is removeable
 TEST_CASE("Can remove breakpoint sites", "[breakpoint]") {
 	auto proc = process::launch("targets/run_endlessly");
 
@@ -397,7 +398,9 @@ TEST_CASE("Can remove breakpoint sites", "[breakpoint]") {
 	REQUIRE(proc->breakpoint_sites().empty());
 }
 
+// in case - reading and writing to and from memory respectively works
 TEST_CASE("Reading and writing memory works", "[memory]") {
+	// -- reading from memory -- // 	
 	bool close_on_exec {false};
 	kdebugger::pipe channel(close_on_exec);
 	auto proc = process::launch("targets/memory", true, channel.get_write());
@@ -411,4 +414,16 @@ TEST_CASE("Reading and writing memory works", "[memory]") {
 	auto data = from_bytes<std::uint64_t>(data_vec.data());
 
 	REQUIRE(data == 0xcafecafe);
+
+	// -- writing to memory -- //
+	proc->resume();
+	proc->wait_on_signal();
+
+	auto b_pointer = from_bytes<std::uint64_t>(channel.read().data());
+	proc->write_memory(virt_addr {b_pointer}, {as_bytes("Hello, KDebugger!"), 12});
+	auto read = channel.read();
+
+	REQUIRE(to_string_view(read) == "Hello, KDebugger!");
 }
+
+
