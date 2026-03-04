@@ -15,9 +15,11 @@ namespace {
 }
 
 // private constructor definition
-kdebugger::breakpoint_site::breakpoint_site(process & proc, virt_addr address)
-	: m_Process {&proc}, m_Address {address}, m_isEnabled {false}, m_SavedData {} {
-	m_Id = get_next_id();
+kdebugger::breakpoint_site::breakpoint_site(process & proc, virt_addr address, bool is_hardware, bool is_internal)
+	: m_Process {&proc}, m_Address {address}, m_isEnabled {false}, m_SavedData {}, m_isHardware {is_hardware},
+		m_isInternal {is_internal} {
+	
+	m_Id = m_isInternal ? -1 : get_next_id();
 }
 
 // replaces instruction with int3 instruction encoded as 0xcc
