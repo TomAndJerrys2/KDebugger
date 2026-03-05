@@ -53,7 +53,10 @@ namespace kdebugger {
 			process(pid_t pid, bool terminate, bool is_attached) : m_Pid {pid},
 				m_Terminate {terminate}, m_Attached {is_attached},
 			       		m_Registers {new registers(*this)} {}
-		
+
+            // private method for setting hardware breakpoints
+            int set_hardware_stoppoint(virt_addr address, mode, std::size_t size);
+
 		public:
 			// delete default constructor
 			process() = delete;
@@ -117,8 +120,11 @@ namespace kdebugger {
 				get_registers().write_by_id(register_id::rip, address.addr());
 			}
 			
+            // public method for setting hardware breakpoints at a virtual address
+            int set_hardware_breakpoint(breakpoint_site::id_type id, virt_addr address);
+
 			// iterating over breakpoint sites - returns memory location
-			breakpoint_site & create_breakpoint_site(virt_addr address);
+			breakpoint_site & create_breakpoint_site(virt_addr address, bool hardware = false, bool internal = false);
 			
 			// non-const and const overloads for breakpoint sites to return
 			// the current breakpoint site
