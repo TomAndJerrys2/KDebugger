@@ -12,6 +12,10 @@ namespace {
 
 kdebugger::watchpoint::watchpoint(process & proc, virt_addr address, stoppoint_mode mode, std::size_t size)
     : m_Process {&proc}, m_Address {address} m_isEnabled {false}, m_Mode {mode}, m_Size {size} {
+
+    if((address.addr() & (size - 1)) != 0)
+        error::send("Watchpoint must be aligned to size");
+    
     m_Id = get_next_id();
 }
 
