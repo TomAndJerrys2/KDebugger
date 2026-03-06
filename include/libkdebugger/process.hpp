@@ -63,6 +63,10 @@ namespace kdebugger {
             // private method for setting hardware breakpoints
             int set_hardware_stoppoint(virt_addr address, stoppoint_mode mode, std::size_t size);
 
+            // watch point collections and breakpoint sites for watchpoints
+            stoppoint_collection<breakpoint_site> m_BreakpointSites;
+            stoppoint_collection<watchpoint> m_Watchpoints;
+
 		public:
 			// delete default constructor
 			process() = delete;
@@ -99,6 +103,7 @@ namespace kdebugger {
 			// reads memory then fix a replacement for int3 instructions with original bytes
 			std::vector<std::byte> read_memory_without_traps(virt_addr, std::size_t amount) const;
 		
+            // writes to memory using a span (pointer with a length)
 			void write_memory(virt_addr address, span<const std::byte> data);
 		
             // clears a hardware stoppoint
@@ -134,7 +139,23 @@ namespace kdebugger {
 
 			// iterating over breakpoint sites - returns memory location
 			breakpoint_site & create_breakpoint_site(virt_addr address, bool hardware = false, bool internal = false);
-			
+
+            // sets a watchpoint at a given address with a size, id and type
+            int set_watchpoint(watchpoint::id_type id, virt_addr address, stoppoint_mode mode, std::size_t size);
+            
+            // creates a watchpoint
+            watchpoint & create_watchpoint(virt_addr address, stoppoint_mode mode, std::size_t size);
+
+            // getter for return the watchpoints collection
+            stoppoint_collection<watchpoint> & watchpoints() {
+                return m_Watchpoints;
+            }
+
+            // const overload for returning watchpoints
+            const stoppoint_collection<watchpoint> & watchpoint() const {
+                return m_Watchpoints;
+            }
+
 			// non-const and const overloads for breakpoint sites to return
 			// the current breakpoint site
 			stoppoint_collection<breakpoint_site> & breakpoint_sites() {
