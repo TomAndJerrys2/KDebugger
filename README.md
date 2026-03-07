@@ -14,7 +14,7 @@
 <br>
 
 # Foreword
-A Linux debugger (and eventually a profiler) built with C++ for 
+A Linux Debugger, Profiler and Disassembler built with C++ for 
 extendable testing and feature-rich debugging; As it stands currently;
 this project only features a LLDB/GDB inspired debugger would use. Cnce complete,
 I'll move on to including a profiler:
@@ -49,30 +49,62 @@ to convert functions and make them asynchronously and add coroutines, mabye
 some concepts and meta-template programming - these will be in the separate 
 given branches for people to see how these conversions work
 <br>
+
 # Project File Structure
+
 ```
-.
+KDebugger/
+├── .gitignore
+├── build/
+│   ├── Makefile
+│   └── README.md
 ├── CMakeLists.txt
-├── LICENSE
-├── include
-│   └── libkdebugger
+├── include/
+│   └── libkdebugger/
+│       ├── bit.hpp
+│       ├── breakpoint_site.hpp
+│       ├── detail/
+│       │   └── registers.inc
+│       ├── disassembler.hpp
 │       ├── error.hpp
 │       ├── libkdebugger.hpp
+│       ├── parse.hpp
 │       ├── pipe.hpp
-│       └── process.hpp
-├── src
+│       ├── process.hpp
+│       ├── register_info.hpp
+│       ├── registers.hpp
+│       ├── stoppoint_collection.hpp
+│       ├── types.hpp
+│       └── watchpoint.hpp
+├── LICENSE
+├── README.md
+├── src/
+│   ├── breakpoint_site.cpp
 │   ├── CMakeLists.txt
+│   ├── disassembler.cpp
 │   ├── libkdebugger.cpp
 │   ├── pipe.cpp
-│   └── process.cpp
-├── test
+│   ├── process.cpp
+│   ├── registers.cpp
+│   └── watchpoint.cpp
+├── test/
 │   ├── CMakeLists.txt
+│   ├── targets/
+│   │   ├── anti_debugger.cpp
+│   │   ├── CMakeLists.txt
+│   │   ├── end_immediately.cpp
+│   │   ├── hello_kdebugger.cpp
+│   │   ├── memory.cpp
+│   │   ├── reg_read.s
+│   │   ├── reg_write.s
+│   │   └── run_endlessly.cpp
 │   └── tests.cpp
-├── tools
+├── tools/
 │   ├── CMakeLists.txt
 │   └── kdebugger.cpp
 └── vcpkg.json
 ```
+
 # Scope
 > [!NOTE]
 > Features with ⚠️ are either in-development or have yet to be added
@@ -92,8 +124,18 @@ given branches for people to see how these conversions work
 14. Custom Disassembler and Profiler Integration (Big Goal) ⚠️
 15. Flame Graph Support and Logging ⚠️
 
-# Build
+# Features
+KDebugger> help
+- memory
+- disassemble
+- breakpoint
+- watchpoint
+- catchpoint
+- step
+- continue
+- more to come...
 
+# Build
 This project takes advantage of CMake 3.29 and is used in accompany with VCPKG
 Catch2 and Libedit. Catch2 and Libedit are dependencies you'll need to install
 via your package manager. VCPKG takes care of including these dependencies in our
