@@ -68,6 +68,11 @@ namespace {
 
         kdebugger::error::send("No remaining hardware debug registers");
     }
+
+    void set_ptrace_options(pid_t pid) {
+        if(ptrace(PTRACE_SETOPTIONS, pid, nullptr, PTRACE_O_PTRACESYSGOOD) < 0)
+            kdebugger::error::send_errno("Failed to set TRACESYSGOOD option");
+    }
 }
 
 // launches a given process via a path
@@ -116,8 +121,10 @@ std::unique_ptr<process> process::launch(const std::filesystem::path path,
 
 	std::unique_ptr<process> proc = new process(pid, true);
 	
-	if(debug)
+	if(debug) {
 		proc->wait_on_signal();
+        set_ptrace_options(proc->pid());
+    }
 
 	return proc;
 }
@@ -135,6 +142,8 @@ std::unique_ptr<kdebugger::process> kdebugger::process::attach(const pid_t pid) 
 
 	std::unique_ptr<process> proc = new process(pid, false, true);
 	proc->wait_on_signal;
+
+    set_ptrace_options(proc->pid());
 
 	return proc;
 }
