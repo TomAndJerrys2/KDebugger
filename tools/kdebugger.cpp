@@ -35,6 +35,32 @@ namespace {
     void handle_sigint(int) {
         kill(g_KdebuggerProcess->pid(), SIGSTOP);
     }
+
+    std::string get_sigtrap_info(const kdebugger::process & process, kdebugger::stop_reason reason) {
+        if(reason.trap_reason == kdebugger::trap_type::software_break) {
+            auto & site = process.breakpoint_sites().get_by_address(process.get_pc());
+            
+            return fmt::format("(breakpoint {})", site_id());
+        }
+
+        if(reason.trap_reason == kdebugger::trap_type::hardware_break) {
+            auto id = process.get_current_hardware_stoppoint();
+
+            if(id.index() == 0)
+                return fmt::format("(breakpoint {})", std::get<0>(id));
+
+            std::string message;
+            auto & point = process.watchpoints().get_by_id(std::get<1>(id));
+            message += fmt::format("(watchpoint {})", point.id());
+
+            if(point.data() == point.previous_data())
+                message += fmt::format("\nValue: {:#x}", point.data());
+            else
+                message += fmt::format("\nOld value: {:#x}\nNex value {:#x}", point.previous_data(), point.data());
+
+            return message;
+        }
+    }
 }
 
 // -- handling watchpoints --
@@ -619,7 +645,11 @@ namespace {
 			case kdebugger::process_state::stopped:
 				message = fmt::format("Stopped with signal:{}  at {:#x}", 
 						sigabbrev_np(reason.info), process.get_pc().addr());
-				break;
+				
+                if(reason.info == SIGTRAP)
+                    message += get_sigtrap_info(process, reason);   
+
+                break;
 		}
 		
 		fmt::print("Process {} {}\n", process.pid(), message);
