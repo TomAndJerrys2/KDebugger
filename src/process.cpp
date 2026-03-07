@@ -166,7 +166,10 @@ void sdb::process::resume() {
 		bp.enable();
 	}
 
-	if(ptrace(PTRACE_CONT, m_Pid, nullptr, nullptr) < 0) {
+    auto request = (m_SyscallCatchPolicy.get_mode == syscall_catch_policy::mode::none ?
+        PTRACE_CONT : PTRACE_SYSCALL);
+
+	if(ptrace(request, m_Pid, nullptr, nullptr) < 0) {
 		error::send_errno("Could not resume Process");
 	}
 
