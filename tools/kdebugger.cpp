@@ -29,6 +29,33 @@
 
 namespace {
     
+    void handle_watchpoint_list(kdebugger::process & process, const std::vector<std::string> & args) {
+        auto stoppoint_mode_to_string = [](auto mode) {
+            switch(mode) {
+                case kdebugger::stoppoint_mode::execute:
+                    return "execute";
+                case kdebugger::stoppoint_mode::write:
+                    return "write";
+                case kdebugger::stoppoint_mode::read_write:
+                    return "read_write";
+                default:
+                    kdebugger::error::send("Invalid stoppoint mode");
+            }
+        };
+
+        if(process.watchpoints().empty())
+            fmt::print("No watchpoints set");
+        
+        else
+            fmt::print("Current watchpoints");
+            process.watchpoints().for_each([&] (auto & point) {
+                    fmt::print("{}: address = {:#x}, mode = {}. size = {}, {}\n", 
+                        point.id(), point.address().addr(), stoppoint_mode_to_string(point.mode()),
+                        point.size(), point.is_enabled() ? "enabled" : "disabled"      
+                    );
+            });
+    }
+
     // handles commands for watchpoint settings
     void handle_watchpoint_command(kdebugger::process & process, const std::vector<std::string> & args) {
         if(args.size() < 2) {
