@@ -423,3 +423,26 @@ kdebugger::watchpoint & kdebugger::process::create_watchpoint(cirt_addr address,
 
     return m_Watchpoints.push(std::unique_ptr<watchpoint>(new watchpoint(*this, address, mode, size)));
 }
+
+void kdebugger::process::augment_stop_reason(stop_reason & reason) {
+    siginfo_t info;
+    if(ptrace(PTRACE_GETSIGINFO, m_Pid, nullptr, &info) < 0)
+        error::send_errno("Failed to get signal info");
+
+    reason.trap_reason = trap_type::unkown;
+    if(reason.info = SIGTRAP) {
+        switch(info.si_code) {
+            case TRAP_TRACE:
+                reason.trap_reason = trap_type::single_step;
+                break;
+            
+            case SI_KERNEL:
+                reason.trap_reason = trap_type::software_break;
+                break;
+            
+            case TRAP_HWBKPT:
+                reason.trap_reason = trap_type::hardware_break;
+                break;
+        }
+    }
+}
