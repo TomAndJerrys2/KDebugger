@@ -60,6 +60,11 @@ namespace {
 
             return message;
         }
+
+        if(reason.trap_reason == kdebugger::trap_type::single_step)
+            return "(single step)";
+
+        return "";
     }
 }
 
