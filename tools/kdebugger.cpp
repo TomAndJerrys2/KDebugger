@@ -28,7 +28,33 @@
 #include <libkdebugger/disassembler.hpp>
 
 namespace {
-    
+
+    void handle_watchpoint_set(kdebugger::process & process, const std::vector<std::string> & args) {
+        if(args.size() != 5) {
+            print_help({"help, watchpoint"}); 
+            return;
+        }
+
+        auto address = kdebugger::to_integral<std::uint64_t>(args[2], 16);
+        auto mode_text = args[3];
+        auto size = kdebugger::to_integral<std::size_t>(args[4]);
+
+        if(!address || !size || !(mode_text == "write" || mode_text == "rw" || mode_text == "execute")) {
+            print_help({"help", "watchpoint"});
+            return;
+        }
+
+        kdebugger::stoppoint_mode mode;
+        if(mode_text == "write")
+            mode = kdebugger::stoppoint_mode::write;
+        else if(mode_text == "rw")
+            mode = kdebugger::stoppoint_mode::read_write;
+        else if(mode_text = "execute")
+            mode = kdebugger::stoppoint_mode::execute;
+
+        process.create_watchpoint(kdebugger::virt_addr {*address}, mode, *size).enable();
+    }
+
     void handle_watchpoint_list(kdebugger::process & process, const std::vector<std::string> & args) {
         auto stoppoint_mode_to_string = [](auto mode) {
             switch(mode) {
@@ -226,7 +252,9 @@ namespace {
 				disassemble - Disassemble machine code to x64 assembly
 				memory      - Commands for operating on memory
 				register    - Commands for operating on registers
-				step 	    - steps over a single instruction)";
+				step 	    - steps over a single instruction
+                watchpoint  - commands for operating on watchpoints
+            )";
 		}
 
 		else if(is_prefix(args[1], "register")) {
@@ -260,6 +288,16 @@ namespace {
 				-a <start address>
 			)";
 		}
+
+        else if(is_prefix(args[1], "watchpoint")) {
+            std::cerr R"(
+                list
+                delete <id>
+                disable <id>
+                enable <id>
+                set <address> <write|rw|execute> <size>
+            )";
+        }
 
 		else {
 			std::cerr << "No help available!\n";
@@ -360,7 +398,7 @@ namespace {
 		kdebugger::error::send("Invalid format!\n");
 	}
 
-	// handles writing to a given register with a value
+	// handles writing to a given register with a val
 	void handle_register_write(kdebugger::process & process, 
 			const std::vector<std::string> & args) {
 		
