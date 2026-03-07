@@ -120,6 +120,8 @@ namespace kdebugger {
             // the stop reason because of a signal that was called
             void augment_stop_reason(stop_reason & reason);
 
+            syscall_catch_policy m_SyscallCatchPolicy = syscall_catch_policy::catch_none();
+
 		public:
 			// delete default constructor
 			process() = delete;
@@ -221,6 +223,11 @@ namespace kdebugger {
 			stoppoint_collection<breakpoint_site> & breakpoint_sites() {
 				return m_BreakPointSites;
 			}
+
+            // sets the syscall catch policy
+            void set_syscall_catch_policy(syscall_catch_policy info) {
+                m_SyscallCatchPolicy = std::move(info);
+            }
 
 			~process();
 	};
