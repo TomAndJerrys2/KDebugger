@@ -27,6 +27,46 @@
 #include <libkdebugger/error.hpp>
 #include <libkdebugger/disassembler.hpp>
 
+namespace {
+    
+    // handles commands for watchpoint settings
+    void handle_watchpoint_command(kdebugger::process & process, const std::vector<std::string> & args) {
+        if(args.size() < 2) {
+            print_help({"help", "watchpoint"});
+            return;
+        }
+
+        auto command = args[1];
+
+        if(is_prefix(command, "list")) {
+            handle_watchpoint_list(process, args);
+            return;
+        }
+
+        if(is_prefix(command, "set")) {
+            handle_watchpoint_set(process, args);
+        }
+
+        if(args.size() < 3) {
+            print_help({"help", "watchpoint"});
+            return;
+        }
+
+        auto id = kdebugger::to_integral<kdebugger::watchpoint::id_type>(args[2]);
+        if(!id) {
+            std::cerr << "Command expects watchpoint id";
+            returnl;
+        }
+
+        if(is_prefix(command, "enable"))
+            process.watchpoints().get_by_id(*id).enable();
+        else if(is_prefix(command, "disable"))
+            process.watchpoints().get_by_id(*id).disable();
+        else if(is_prefix(command, "delete"))
+            process.watchpoints().remove_by_id(*id);
+    }
+}
+
 // -- handling disassemble commands --
 namespace {
 
@@ -349,12 +389,18 @@ namespace {
 
 		auto command = args[1];
 		if(is_prefix(command, "list")) {
-			if(process.breakpoint_sites().empty())
+
+            if(process.breakpoint_sites().empty())
 				fmt::print("No Breakpoints set!\n");
-			else {
+
+            else {
 				fmt::print("Current breakpoints:\n");
 				process.breakpoint_sites().for_each([] (auto & site) {
-					fmt::print("{}: address = {:#x}, {}\n", 
+                
+                        if(site.is_internal())
+                            return;
+            
+                        fmt::print("{}: address = {:#x}, {}\n", 
 						site.id(), site.address().addr(),
 						site.is_enabled() ? "enabled" : "disabled"
 					);
@@ -510,6 +556,8 @@ namespace {
 		auto args = split(current_line, ' ');
 		auto command = args[0];
 
+        // will refactor to a switch a long with some other common-sense
+        // refatorings later...
 		if(is_prefix(command, "help")) {
 			print_help();	
 		}
@@ -536,6 +584,10 @@ namespace {
 		else if(is_prefix(command, "disassemble")) {
 			handle_disassemble_command(*process, args);
 		}
+
+        else if(is_prefix(command, "watchpoint")) {
+            handle_watchpoint_command(*process, args);
+        }
 
 		else {
 			std::cerr << "> Unknown Command entered.\n";
