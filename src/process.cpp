@@ -453,8 +453,16 @@ void kdebugger::process::augment_stop_reason(stop_reason & reason) {
     if(ptrace(PTRACE_GETSIGINFO, m_Pid, nullptr, &info) < 0)
         error::send_errno("Failed to get signal info");
 
+    if(reason.info == (SIGTRAP | 0x80)) {
+        reason.info = SIGTRAP;
+        reason.trap_reason = trap_type::syscall;
+        return;
+    }   
+
+    expecting_syscall_exit = false;
+
     reason.trap_reason = trap_type::unkown;
-    if(reason.info = SIGTRAP) {
+    if(reason.info == (SIGTRAP)) {
         switch(info.si_code) {
             case TRAP_TRACE:
                 reason.trap_reason = trap_type::single_step;
