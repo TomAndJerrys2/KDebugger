@@ -200,7 +200,8 @@ kdebugger::stop_reason kdebugger::process::wait_on_signal() {
 
 	if(m_Attached && m_State == process_state::stopped) {
 		read_all_registers();
-		
+		augment_stop_reason(reason);
+
 		auto instr_begin = get_pc() - 1;
 		if(reason.info == SIGTRAP && m_BreakPointSites.enabled_stoppoint_at_address(instr_begin))
 			set_pc(instr_begin)
