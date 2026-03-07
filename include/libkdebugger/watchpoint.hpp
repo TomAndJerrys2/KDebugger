@@ -78,5 +78,7 @@ namespace kdebugger {
             std::uint64_t previous_data() const {
                 return m_PreviousData;
             }
+
+            void update_data();
     };
 }

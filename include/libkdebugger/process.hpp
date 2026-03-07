@@ -13,6 +13,48 @@
 #include <libkdebugger/breakpoint_site.hpp>
 #include <libkdebugger/stoppoint_collection.hpp>
 
+namespace kdebugger {
+    
+    // class for catchpoints invoked when a syscall
+    // is encountered
+    class syscall_catch_policy {
+        
+        private:
+            syscall_catch_policy(mode mode, std::vector<int> to_catch) :
+                m_Mode {mode}, m_toCatch {to_catch} {}
+
+            mode m_Mode;
+            std::vector<int> m_toCatch;
+
+        public:
+            enum mode {
+                none,
+                some,
+                all
+            };
+
+            static syscall_catch_policy catch_all() {
+                return {mode::all, {}};
+            }
+
+            static syscall_catch_policy catch_none() {
+                return {mode::none, {}};
+            }
+
+            static syscall_catch_policy catch_some(std::vector<int> to_catch) {
+                return {mode::some, std::move(to_catch)};
+            }
+
+            mode get_mode() const {
+                return m_Mode;
+            }
+
+            const std::vector<int> & get_to_catch() const {
+                return m_toCatch;
+            }
+    };
+}
+
 // kdebugger::process::
 namespace kdebugger {
 	
@@ -34,7 +76,7 @@ namespace kdebugger {
         software_break,
         hardware_break,
         unkown
-    }
+    };
 
 	struct stop_reason {
 		
