@@ -27,6 +27,9 @@ namespace kdebugger {
             std::size_t m_Size;
             bool m_isEnabled;
             int m_HardwareRegisterIndex = -1;
+            
+            std::uint64_t m_Data = 0;
+            std::uint64_t m_PreviousData = 0;
 
         public:
             // delete default constructor
@@ -66,6 +69,14 @@ namespace kdebugger {
 
             bool in_range(virt_addr low, virt_addr high) const {
                 return low <= m_Address && high > m_Address;
+            }
+
+            std::uint64_t data() const {
+                return m_Data;
+            }
+
+            std::uint64_t previous_data() const {
+                return m_PreviousData;
             }
     };
 }

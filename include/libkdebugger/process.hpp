@@ -29,11 +29,19 @@ namespace kdebugger {
         execute
     };
 
+    enum class trap_type {
+        single_step,
+        software_break,
+        hardware_break,
+        unkown
+    }
+
 	struct stop_reason {
 		
 		stop_reason(int wait_status);
 
 		process_state reason;
+        std::optional<trap_type> trap_reason;
 		std::uint8_t info;
 	};
 
@@ -66,6 +74,9 @@ namespace kdebugger {
             // watch point collections and breakpoint sites for watchpoints
             stoppoint_collection<breakpoint_site> m_BreakpointSites;
             stoppoint_collection<watchpoint> m_Watchpoints;
+
+            // the stop reason because of a signal that was called
+            void augment_stop_reason(stop_reason & reason);
 
 		public:
 			// delete default constructor
@@ -136,6 +147,9 @@ namespace kdebugger {
 			
             // public method for setting hardware breakpoints at a virtual address
             int set_hardware_breakpoint(breakpoint_site::id_type id, virt_addr address);
+
+            // evaluates the current location of a coressponding breakpoint or watchpoint
+            std::variant<breakpoint_site::id_type, watchpoint::id_type> get_current_hardware_stoppoint() const;
 
 			// iterating over breakpoint sites - returns memory location
 			breakpoint_site & create_breakpoint_site(virt_addr address, bool hardware = false, bool internal = false);
