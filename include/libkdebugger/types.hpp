@@ -9,7 +9,10 @@ namespace kdebugger {
 
 	using byte64 = std::array<std::byte, 8>;
 	using byte128 = std::array<std::byte, 16>;
-	
+
+	class file_addr;
+	class elf;
+
 	class virt_addr {
 		
 		private:
@@ -23,6 +26,10 @@ namespace kdebugger {
 			std::uint64_t addr() const {
 				return m_Addr;
 			}
+
+			// takes an elf object in virtual memory and converts it
+			// to a file address with a file offset
+			file_addr to_file_addr(const elf & obj) const;
 
 			// operatpr overloads
 			virt_addr operator + (std::uint64_t offset) const {
@@ -101,5 +108,28 @@ namespace kdebugger {
 			T & operator [](std::size_t n) noexcept {
 				return *(m_Data + n);
 			}
+	};
+
+	class file_addr {
+		
+		private:
+			const elf * m_Elf = nullptr;
+			std::uint64_t m_Addr {0};
+
+		public:
+			file_addr() = default;
+
+			file_addr(const elf & obj, std::uint64_t addr) : m_Elf {&obj}, m_Addr{addr} {}
+
+			std::uint64_t addr() const {
+				return m_Addr;
+			}
+
+			const elf * elf_file() const {
+				return m_Elf;
+			}
+			
+			// backwards-compatible -> conversion to a virtual address
+			virt_addr to_virt_addr() const;
 	};
 }

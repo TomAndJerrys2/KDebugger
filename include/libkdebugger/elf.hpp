@@ -35,6 +35,10 @@ namespace kdebugger {
 			// contains the section map along with given Elf64 section headers
 			std::unordered_map<std::string_view, Elf64_Shdr *> m_SectionMap;
 
+			// gets a string from the string table at a given index
+			// i.e from .strtab or .dynstr (abbreviated section)
+			std::string_view get_string(std::size_t index) const;
+
 		public:
 			elf(const std::filesystem::path & path);
 		
