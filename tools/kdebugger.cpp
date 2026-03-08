@@ -28,6 +28,41 @@
 #include <libkdebugger/error.hpp>
 #include <libkdebugger/disassembler.hpp>
 
+// -- handling catchpoints
+namespace {
+    void handle_syscall_catchpoint_command(kdebugger::process & process, const std::vector<std::string> & args) {
+        kdebugger::syscall_catch_policy = kdebugger::syscall_catch_policy::catch_all();
+
+        if(args.size() == 3 && args[2] == "none")
+            policy = kdebugger::syscall_catch_policy::catch_none();
+        
+        else if(args.size() >= 3) {
+            auto syscalls = split(args[2], ',');
+            std::vector<int> to_catch;
+         
+            std::transform(begin(syscalls), end(syscalls), std::back_inserter(to_catch), 
+                    [](auto & syscall) {
+                    return isdigit(syscall[0]) ? kdebugger::to_integral<int>(syscall).value() :
+                        kdebugger::syscall_name_to_id(syscall);
+            });
+
+            policy = kdebugger::syscall_catch_policy::catch_some(std::move(to_catch));
+        }
+
+        process.set_syscall_catch_policy(std::move(policy));
+    }
+
+    void handle_catchpoint_command(kdebugger::process & process, const std::vector<std::string> & args) {
+        if(args.size() < 2) {
+            print_help({"help", "catchpoint"});
+            return;
+        }
+
+        if(is_prefix(args[1], "syscall"))
+            handle_syscall_catchpoint_command(process, args);
+    }
+}
+
 // -- signal handling --
 namespace {
     kdebugger::process * g_KdebuggerProcess {nullptr};
@@ -698,6 +733,10 @@ namespace {
 
         else if(is_prefix(command, "watchpoint")) {
             handle_watchpoint_command(*process, args);
+        }
+
+        else if(is_prefix(command, "catchpoint")) {
+            handle_catchpoint_command(*process, args);
         }
 
 		else {
