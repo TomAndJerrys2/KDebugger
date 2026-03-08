@@ -5,6 +5,7 @@ add_library(libkdebugger process.cpp)
 add_library(libkdebugger ... registers.cpp)
 add_library(libkdebugger ... breakpoint_site.cpp)
 add_library(libkdebugger ... watchpoint.cpp)
+add_library(libkdebugger ... syscalls.cpp)
 
 # I will end up building my own after this to draw away from
 # external dependencies like Zydis
