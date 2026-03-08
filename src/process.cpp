@@ -529,3 +529,17 @@ kdebugger::process::get_current_hardware_stoppoint() const {
         return ret {std::in_place_index<1>, watch_id};
     }
 }
+
+kdebugger::stop_reason kdebugger::process::mabye_resume_from_syscall(const stop_reason & reason) {
+    if(m_SyscallCatchPolicy.get_mode() == syscall_catch_policy::mode::some) {
+        auto & to_catch = m_SycallCatchPolicy.get_to_catch();
+        auto found = std::find(begin(to_catch), end(to_catch), reason.syscall_info->id);
+
+        if(found == end(to_catch)) {
+            resume();
+            return wait_on_signal();
+        }
+    }
+
+    return reason;
+}
