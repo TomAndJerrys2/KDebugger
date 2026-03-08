@@ -54,6 +54,14 @@ std::string_view kdebugger::elf::get_section_name(std::size_t index) const {
 	};
 }
 
+kdebugger::span<const std::byte> kdebugger::elf::get_section_contents() const {
+	if(auto sect = get_section(); sect) {
+		return {data + sect.value()->sh_offset, sect.value()->sh_size};
+	}
+
+	return {nullptr, std::size_t {0}};
+}
+
 void kdebugger::elf::build_section_map() {
 	for(auto & section : m_SectionHeaders) {
 		m_SectionMap[get_section_name(section.sh_name)] = &section;
