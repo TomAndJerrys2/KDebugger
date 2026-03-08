@@ -134,6 +134,9 @@ namespace kdebugger {
             // the stop reason because of a signal that was called
             void augment_stop_reason(stop_reason & reason);
 
+            // reason for resuming if the syscall isnt one we have requested tracing for
+            kdebugger::stop_reason mabye_resume_from_syscall(const stop_reason & reason);
+
             syscall_catch_policy m_SyscallCatchPolicy = syscall_catch_policy::catch_none();
 
 		public:
