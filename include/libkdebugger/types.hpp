@@ -131,5 +131,51 @@ namespace kdebugger {
 			
 			// backwards-compatible -> conversion to a virtual address
 			virt_addr to_virt_addr() const;
+
+			file_addr operator + (std::uint64_t offset) const {
+				return file_addr(*m_Elf, m_Addr + offset);
+			}
+
+			file_addr operator - (std::uint64_t offset) const {
+				return file_addr(*m_Elf, m_Addr - offset);
+			}
+
+			file_addr & operator += (std::uint64_t offset) {
+				m_Addr += offset;
+				return *this;
+			}
+
+			file_addr & operator -= (std::uint64_t offset) {
+				m_Addr -= offset;
+				return *this;
+			}
+
+			bool operator == (const file_addr & other) const {
+				return m_Addr == other.m_Addr && m_Elf == other.m_Elf;
+			}
+
+			bool operator != (const file_addr & other) const {
+				return m_Addr != other.m_Addr && m_Elf != other.m_Elf;
+			}
+
+			bool operator < (const file_addr & other) const {
+				assert(m_Elf == other.m_Elf);
+				return m_Addr < other.m_Addr;
+			}
+
+			bool operator <= (const file_addr & other) const {
+				assert(m_Elf == other.m_Elf);
+				return m_Addr <= other.m_Addr;
+			}
+
+			bool operator > (const file_addr & other) const {
+				assert(m_Elf == other.m_Elf);
+				return m_Addr > other.m_Addr;
+			}
+
+			bool operator >= (const file_addr & other) const {
+				assert(m_Elf == other.m_Elf);
+				return m_Addr >= other.m_Addr;
+			}
 	};
 }
