@@ -20,14 +20,19 @@ kdebugger::elf::elf(const std::filesystem::path & path) {
 	if(fstat(m_Fd, &stats) < 0)
 		error::send_errno("Could not retrieve ELF file stats");
 
-	file_size = stats.st_size;
+	m_FileSize = stats.st_size;
 	void * ret;
 
-	if((ret = mmap(0, file_size, PROT_READ, MAP_SHARED, m_Fd, 0)) == MAP_FAILED) {
+	if((ret = mmap(0, m_FileSize, PROT_READ, MAP_SHARED, m_Fd, 0)) == MAP_FAILED) {
 		close(m_Fd);
 		error::send_errno("Could not mmap ELF file");
 	}
 
 	m_Data = reinterpret_cast<std::byte*>(ret);
 	std::copy(m_Data + sizeof(header), as_byes(m_Header));
+}
+
+kdebugger::elf::~elf() {
+	munmap(m_Data, m_FileSize);
+	close(m_Fd);
 }
