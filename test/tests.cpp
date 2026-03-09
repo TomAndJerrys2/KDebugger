@@ -535,3 +535,19 @@ TEST_CASE("Syscall catchpoints work", "[catchpoint]") {
 
 	close(dev_null);
 }
+
+TEST_CASE("ELF Parser works", "[elf]") {
+	auto path = "targets/hello_sdb";
+	kdebugger::elf elf(path);
+
+	auto entry = elf.get_header().e_entry;
+	auto sym = elf.get_symbol_at_address(file_addr{elf, entry});
+	auto name = elf.get_string(sym.value()->st_name);
+
+	REQUIRE(name == "_start");
+
+	auto syms = elf.get_symbols_by_name("_start");
+	name = elf.get_string(syms.at(0)->st_name);
+
+	REQUIRE(name == "_start");
+}
