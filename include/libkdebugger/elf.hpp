@@ -7,6 +7,7 @@
 #include <string_view>
 #include <unordered_map>
 #include <optional>
+#include <map>
 
 // Project specific / private include paths
 #include <libkdebugger/types.hpp>
@@ -50,6 +51,16 @@ namespace kdebugger {
 			// function for parsing .symtab
 			void parse_symbol_table();
 
+			std::unordered_multimap<std::string_view, Elf64_Sym *> m_SymbolNameMap;
+
+			struct range_comparator {
+				bool operator()(std::pair<file_addr, file_addr> lhs, std::pair<file_addr, file_addr> rhs) const noexcept {
+					return lhs.first < rhs.first;
+				}
+			};
+
+			std::map<std::pair<file_addr, file_addr>, Elf64_Sym*, range_comparator> m_SymbolAddrMap;
+
 		public:
 			elf(const std::filesystem::path & path);
 		
@@ -87,6 +98,15 @@ namespace kdebugger {
 			const Elf64_Shdr * get_section_containing_address(virt_addr addr) const;
 
 			std::optional<file_addr> get_section_start_address(std::string_view name) const;
+
+			// Symbol table functions
+			std::vector<const Elf64_Sym *> get_symbols_by_name(std::string_view name) const;
+
+			std::optional<const Elf64_Sym *> get_symbol_at_address(file_addr addr) const;
+			std::optional<const Elf64_Sym *> get_symbol_at_address(virt_addr addr) const;
+
+			std::optional<const Elf64_Sym *> get_symbol_containing_address(file_addr addr) const;
+			std::optional<const Elf64_Sym *> get_symbol_containing_address(virt_addr addr) const;
 
 			~elf();
 	}
