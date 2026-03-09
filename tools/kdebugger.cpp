@@ -29,6 +29,24 @@
 #include <libkdebugger/disassembler.hpp>
 #include <libkdebugger/target.hpp>
 
+// -- signal stop reason
+namespace {
+    std::string get_signal_stop_reason(const kdebugger::target & target, kdebugger::stop_reason reason) {
+        auto & process = target.get_process();
+        std::string message = fmt::format("stopped with signal {} at {:#x}", sigabbrev_np(reason.info), process.get_pc().addr());
+
+        auto func = target.get_elf().get_symbol_containing_address(process.get_pc());
+        if(func && ELF64_ST_TYPE(func.value()->st_info) == STT_FUNC) {
+            message += fmt::format("({})", target.get_elf().get_string(func.value()->st_name));
+        }
+
+        if(reason.info == SIGTRAP)
+            message += get_sigtrap_info(process, reason);
+
+        return message;
+    }
+}
+
 // -- handling catchpoints
 namespace {
     void handle_syscall_catchpoint_command(kdebugger::process & process, const std::vector<std::string> & args) {
@@ -709,12 +727,7 @@ namespace {
 				break;
 			
 			case kdebugger::process_state::stopped:
-				message = fmt::format("Stopped with signal:{}  at {:#x}", 
-						sigabbrev_np(reason.info), process.get_pc().addr());
-				
-                if(reason.info == SIGTRAP)
-                    message += get_sigtrap_info(process, reason);   
-
+                message = get_signal_stop_reason(target, reason);
                 break;
 		}
 		
