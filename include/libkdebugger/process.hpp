@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <optional>
 #include <vector>
+#include <unordered_map>
 
 // Private / project specific headers
 #include <libkdebugger/registers.hpp>
@@ -140,7 +141,10 @@ namespace kdebugger {
             syscall_catch_policy m_SyscallCatchPolicy = syscall_catch_policy::catch_none();
 
 		public:
-			// delete default constructor
+
+            std::unordered_map<int, std::uint64_t> get_auxv() const;
+
+            // delete default constructor
 			process() = delete;
 
 			/* registers extension --- */
