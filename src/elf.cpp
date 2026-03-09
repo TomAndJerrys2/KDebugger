@@ -171,6 +171,22 @@ std::vector<const Elf64_Sym *> kdebugger::elf::get_symbols_by_name(std::string_v
 	return ret;
 }
 
+std::optional<const Elf64_Sym *> kdebugger::elf::get_symbol_at_address(file_addr address) const {
+	if(address.elf_file() != this)
+		return std::nullopt;
+
+	file_addr null_addr;
+	auto it = m_SymbolAddrMap.find({address, null_addr});
+	if(it == end(m_SymbolAddrMap))
+		return std::nullopt;
+
+	return it->second;
+}
+
+std::optional<const Elf64_Sym *> kdebugger::elf::get_symbol_at_address(virt_addr address) const {
+	return get_symbol_at_address(address.to_file_addr(*this));
+}
+
 kdebugger::elf::~elf() {
 	munmap(m_Data, m_FileSize);
 	close(m_Fd);
