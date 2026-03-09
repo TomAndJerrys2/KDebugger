@@ -78,6 +78,8 @@ namespace kdebugger {
 			const Elf64_Shdr * get_section_containing_address(file_addr addr) const;
 			const Elf64_Shdr * get_section_containing_address(virt_addr addr) const;
 
+			std::optional<file_addr> get_section_start_address(std::string_view name) const;
+
 			~elf();
 	}
 }

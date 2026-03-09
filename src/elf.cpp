@@ -112,6 +112,13 @@ const Elf64_Shr * kdebugger::elf::get_section_containing_address(virt_addr addr)
 	return nullptr;
 }
 
+std::optional<kdebugger::file_addr> kdebugger::elf::get_section_start_address(std::string_view name) const {
+	if(auto sect = get_section(name); sect)
+		return file_addr {*this, sect.value()->sh_addr};
+
+	return std::nullopt;
+}
+
 kdebugger::elf::~elf() {
 	munmap(m_Data, m_FileSize);
 	close(m_Fd);
