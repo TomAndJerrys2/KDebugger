@@ -187,6 +187,27 @@ std::optional<const Elf64_Sym *> kdebugger::elf::get_symbol_at_address(virt_addr
 	return get_symbol_at_address(address.to_file_addr(*this));
 }
 
+std::optional<const Elf64_Sym *> kdebugger::elf::get_symbol_containing_address(file_addr address) const {
+	if(address.elf_file() != this || m_SymbolAddrMap.empty())
+		return std::nullopt;
+
+	file_addr null_addr;
+	auto it = m_SymbolAddrMap.lower_bound({address, null_addr});
+
+	if(it != end(m_SymbolAddrMap)) {
+		if(auto [key, value] = *it; key.first == address)
+			return value;
+	}
+
+	if(it == begin(m_SymbolAddrMap))
+		return std::nullopt;
+
+	if(auto [key, value] = *it; key.first < address && key.second > address)
+		return value;
+
+	return std::nullopt;
+}
+
 kdebugger::elf::~elf() {
 	munmap(m_Data, m_FileSize);
 	close(m_Fd);
