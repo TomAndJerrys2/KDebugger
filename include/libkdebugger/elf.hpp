@@ -23,6 +23,9 @@ namespace kdebugger {
 			std::byte * m_Data;
 			Elf64_Ehdr m_Header;
 
+			// load bias stored here
+			virt_addr m_LoadBias
+
 			// a vector of section headers
 			std::vector<Elf64_Shdr> m_SectionHeaders;
 
@@ -62,6 +65,15 @@ namespace kdebugger {
 
 			// returns a span of the contents and an observed section
 			span<const std::byte> get_section_contents(std::string_view name) const;
+
+			// returns the given load bias of an ELF binary stored in a page
+			virt_addr load_bias() const {
+				return m_LoadBias;
+			}
+
+			void notify_loaded(virt_addr address) {
+				m_LoadBias = address;
+			}
 
 			~elf();
 	}
