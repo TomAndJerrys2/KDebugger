@@ -27,6 +27,7 @@
 #include <libkdebugger/process.hpp>
 #include <libkdebugger/error.hpp>
 #include <libkdebugger/disassembler.hpp>
+#include <libkdebugger/target.hpp>
 
 // -- handling catchpoints
 namespace {
@@ -226,10 +227,10 @@ namespace {
 		}
 	}
 
-	void handle_stop(kdebugger::process & process, kdebugger::stop_reason reason) {
-		print_stop_reason(process, reason);
+	void handle_stop(kdebugger::target & target, kdebugger::stop_reason reason) {
+		print_stop_reason(target, reason);
 		if(reason.reason == kdebugger::process_state::stopped) {
-			print_disassembly(process, process.get_pc(), 5);
+			print_disassembly(target.get_process(), target.get_process().get_pc(), 5);
 		}
 	}
 	
@@ -629,18 +630,18 @@ namespace {
 
 	// attachs to a currently running process ID
 	// based on the command-line argument passed
-	std::unique_ptr<kdebugger::process> attach(int argc, const char** argv) {
+	std::unique_ptr<kdebugger::target> attach(int argc, const char** argv) {
 		// a PID is passed
 		if(argc == 3 && argv[1] == std::string_view("-p")) {
 			pid_t pid = std::atoi(argv[2]);
-			return kdebugger::process::attach(pid); 	
+			return kdebugger::target::attach(pid); 	
 		}
 		// a Program name is passed
 		else {
 			const char* program_path = argv[1];
-			auto proc = kdebugger::process::launch(program_path);
-			fmt::print("Launched process with PID {}\n", proc->pid());
-			return proc;
+			auto target = kdebugger::target::launch(program_path);
+			fmt::print("Launched process with PID {}\n", target->get_process().pid());
+			return target;
 		}	
 	}
 
@@ -721,11 +722,11 @@ namespace {
 	}
 
 	// handles commands given by the command-line as arguments
-	void handle_command(std::unique_ptr<kdebugger::process> & process, 
-			std::string_view current_line) {
+	void handle_command(std::unique_ptr<kdebugger::target> & target, std::string_view current_line) {
 		
 		auto args = split(current_line, ' ');
 		auto command = args[0];
+        auto process = &target->get_process();
 
         // will refactor to a switch a long with some other common-sense
         // refatorings later...
@@ -740,12 +741,12 @@ namespace {
 		else if(is_prefix(command, "continue")) {
 			process->resume();
 			auto reason = process->wait_on_signal();
-			handle_stop(*process, reason);
+			handle_stop(*target, reason);
 		}
 			
 		else if(is_prefix(command, "step")) {
 			auto reason = process->step_instruction();
-			handle_stop(*process, reason);
+			handle_stop(*target, reason);
 		}
 			
 		else if(is_prefix(command, "memory")) {
@@ -772,7 +773,7 @@ namespace {
 
 namespace {
 
-	void main_loop(std::unique_ptr<kdebugger::process> & process) {
+	void main_loop(std::unique_ptr<kdebugger::target> & target) {
 		char* line = nullptr;
 		while((line = readline("KDebugger> ")) != nullptr) {
 			std::string line_str {};
@@ -798,7 +799,7 @@ namespace {
 			if(!line_str.empty()) {
 				// handles the command given to KDebugger
 				try {
-					handle_command(process, line);
+					handle_command(target, line_str);
 				} 
 				
 				catch(const kdebugger::error & err) {
@@ -819,8 +820,8 @@ int main(int argc, const char** argv) {
 	}
 
 	try {
-		auto process = attach(argc, argv);
-	    g_KdebuggerProcess = process.get();
+		auto target = attach(argc, argv);
+	    g_KdebuggerProcess = &target->get_process();
         signal(SIGINT, handle_sigint);
         main_loop(process);
 	}
