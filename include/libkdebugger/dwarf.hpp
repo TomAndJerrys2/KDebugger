@@ -48,5 +48,13 @@ namespace kdebugger {
 			bool finished() const {
 				return m_Pos >= m_Data.end();
 			}
+
+			template <class T>
+			T fixed_int() {
+				auto t = kdebugger::from_bytes<T>(m_Pos);
+				m_Pos += sizeof(T);
+
+				return t;
+			}
 	};
 };
