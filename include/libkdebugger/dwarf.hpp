@@ -56,5 +56,39 @@ namespace kdebugger {
 
 				return t;
 			}
+
+			// sized integer types
+
+			std::uint8_t u8() {
+				return fixed_int<std::uint8_t>();
+			}
+
+			std::uint16_t u16() {
+				return fixed_int<std::uint16_t>();
+			}
+
+			std::uint32_t u32() {
+				return fixed_int<std::uint32_t>();
+			}
+
+			std::uint64_t u64() {
+				return fixed_int<std::uint64_t>();
+			}
+
+			std::int8_t s8() {
+				return fixed_int<std::int8_t>();
+			}
+
+			std::int16_t s16() {
+				return fixed_int<std::int16_t>();
+			}
+
+			std::int32_t s32() {
+				return fixed_int<std::int32_t>();
+			}
+
+			std::int64_t s64() {
+				return fixed_int<std::int64_t>();
+			}
 	};
 };
