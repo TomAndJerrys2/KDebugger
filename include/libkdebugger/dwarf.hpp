@@ -164,6 +164,41 @@ namespace kdebugger {
 	// compile unit class for parsing dwarf compile unit headers
 	// i.e .debug_info section
 	class dwarf;
+	
+	// debugging information entry structures are represented like trees
+	class die {
+		
+		private:
+			const std::byte * m_Pos {nullptr};
+			const compile_unit * m_Cu {nullptr};
+			const abbrev * m_Abbrev {nullptr};
+			const std::byte * m_Next {nullptr};
+
+			std::vector<const std::byte *> m_AttrLocs;
+
+		public:
+			explicit die(const std::byte * next) : m_Next {next} {}
+
+			die(const std::byte * pos, const compile_unit * cu, const abbrev * ab, std::vector<const std::byte *> attr_locs,
+					const std::byte * next) : m_Pos {pos}, m_Cu {cu}, m_Abbrev {ab}, m_AttrLocs {std::move(attr_locs)}, m_Next {next} {}
+
+			const compile_unit * cu() const {
+				return m_Cu;
+			}
+
+			const abbrev * abbrev_entry() const {
+				return m_Abbrev;
+			}
+
+			const std::byte * position() const {
+				return m_Pos;
+			}
+
+			const std::byte * next() const {
+				return m_Next;
+			}
+	}
+
 	class compile_unit {
 		
 		private:
@@ -175,6 +210,8 @@ namespace kdebugger {
 			compile_unit(dwarf & parent, span<const std::byte> data, std::size_t abbrev_offset)
 				: m_Parent {parent}, m_Data {data}, m_AbbrevOffset {abbrev_offset} {}
 
+			die root() const;
+			
 			const dwarf * dwarf_info() const {
 				return m_Parent;
 			}
