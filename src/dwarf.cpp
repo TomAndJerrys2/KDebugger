@@ -43,3 +43,22 @@ std::unordered_map<std::uint64_t, kdebugger::abbrev> parse_abbrev_table(const kd
 const std::unordered_map<std::uint64_t, kdebugger::abbrev> & kdebugger::compile_unit::abbrev_table() const {
 	returb=n m_Parent->get_abbrev_table(m_AbbrevOffset);
 }
+
+kdebugger::dwarf::dwarf(const kdebugger::elf & parent) : m_Elf {&parent} {
+	m_CompileUnits = parse_compile_units(*this, parent);
+}
+
+std::vector<std::unique_ptr<compile_unit>> parse_compile_units(kdebugger::dwarf & dwarf, const kdebugger::elf & obj) {
+	auto debug_info = obj.get_section_contents(".debug_info");
+	cursor cur(debug_info);
+
+	std::vector<std::unique_ptr<kdebugger::compile_unit>> units;
+
+	while(!cur.finished()) {
+		auto unit = parse_compile_unit(dwarf, obj, cur);
+		cur += unit->data().size();
+		units.push_back(std::move(unit));
+	}
+
+	return units;
+}
