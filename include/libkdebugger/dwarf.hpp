@@ -98,5 +98,21 @@ namespace kdebugger {
 				m_Pos = null_terminator + 1;
 				return ret;
 			}
+	
+			std::uint64_t uleb128() {
+				std::uint64_t res = 0;
+				int shift = 0;
+				std::uint8_t byte = 0;
+
+				do {
+					byte = u8;
+					auto masked = static_cast<uint64_t>(byte & 0x7f);
+					res |= masked << shift;
+
+					shift += 7;
+				} while((byte & 0x80) != 0);
+
+				return res;
+			}
 	};
 };
