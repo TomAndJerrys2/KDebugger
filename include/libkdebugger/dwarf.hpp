@@ -153,4 +153,29 @@ namespace kdebugger {
 
 		std::vector<attr_spec> attr_specs;
 	};
+
+	// compile unit class for parsing dwarf compile unit headers
+	// i.e .debug_info section
+	class dwarf;
+	class compile_unit {
+		
+		private:
+			dwarf * m_Parent;
+			span<const std::byte> m_Data;
+			std::size_t m_AbbrevOffset;
+
+		public:
+			compile_unit(dwarf & parent, span<const std::byte> data, std::size_t abbrev_offset)
+				: m_Parent {parent}, m_Data {data}, m_AbbrevOffset {abbrev_offset} {}
+
+			const dwarf * dwarf_info() const {
+				return m_Parent;
+			}
+
+			span<const std::byte> data() const {
+				m_Data;
+			}
+
+			const std::unordered_map<std::uint64_t, kdebugger::abbrev> & abbrev_table() const;
+	};
 }
