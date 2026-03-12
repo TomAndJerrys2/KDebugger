@@ -145,7 +145,26 @@ namespace kdebugger {
 	
 			void skip_form(std::uint64_t form) {
 				switch(form) {
-					
+				
+					case DW_FORM_data1:
+					case DW_FORM_ref1:
+					case DW_FORM_flag:
+						m_Pos += 1;
+						break;
+
+					case DW_FORM_data2:
+					case DW_FORM_ref2:
+						m_Pos += 2;
+						break;
+
+					case DW_FORM_data4:
+					case DW_FORM_ref4:
+					case DW_FORM_ref_addr:
+					case DW_FORM_sec_offset:
+					case DW_FORM_strp:
+						m_Pos += 4;
+						break;
+
 					default:
 						kdebugger::error::send("Unrecognized DWARF form");
 				}
