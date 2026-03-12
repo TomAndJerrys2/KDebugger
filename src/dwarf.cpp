@@ -84,3 +84,26 @@ std::unique_ptr<kdebugger::compile_unit> parse_compile_unit(kdebugger::dwarf & d
 	kdebugger::span<const std::byte> data = {start, size};
 	return std::make_unique<kdebugger::compile_unit>(dwarf, data, abbrev);
 }
+
+kdebugger::die parse_die(const kdebugger::compile_unit & cu, cursor cur) {
+	auto pos = cur.position();
+	auto abbrev_code = cur.uleb128();
+
+	if(abbrev_code == 0) {
+		auto next = cur.position();
+		return kdebugger::die {next};
+	}
+
+	auto & abbrev_table = cu.abbrev_table();
+	auto & abbrev = abbrev_table.at(abbrev_code);
+
+	std::vector<const std::byte*> attr_locs;
+	attr_locs.reserve(abbrev.attr_specs.size());
+	for(auto & attr : abbrev.attr_specs) {
+		attr_locs.push_back(cur.position());
+		cur.skip_form(attr.form);
+	}
+
+	auto next = cur.position();
+	return kdebugger::die(pos, &cu, &abbrev, std::move(attr_locs), next);
+}
