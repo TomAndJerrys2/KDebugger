@@ -197,6 +197,11 @@ namespace kdebugger {
 						}
 
 						++m_Pos;
+						break;
+
+					case DW_FORM_indirect:
+						skip_form(uleb128());
+						break;
 
 					default:
 						kdebugger::error::send("Unrecognized DWARF form");
@@ -257,6 +262,9 @@ namespace kdebugger {
 			const std::byte * next() const {
 				return m_Next;
 			}
+
+			class children_range;
+			children_range children() const;
 	}
 
 	class compile_unit {
