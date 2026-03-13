@@ -267,6 +267,29 @@ namespace kdebugger {
 			children_range children() const;
 	}
 
+	class die::children_range {
+	
+		private:
+			die m_Die;
+
+		public:
+			class iterator {
+
+			};
+
+			iterator begin() const {
+				if(m_Die.m_Abbrev->has_children) {
+					return iterator {m_Die};}
+				}
+
+				return end();
+			}
+
+			iterator end() {
+				return iterator {};
+			}
+	};
+
 	class compile_unit {
 		
 		private:
