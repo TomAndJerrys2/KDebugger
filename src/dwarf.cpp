@@ -249,3 +249,36 @@ kdebugger::span<const std::byte> kdebugger::attr::as_block() const {
 
 	return {cur.position(), size};
 }
+
+kdebugger::die kdebugger::attr::as_reference() const {
+	cursor cur({m_Location, m_Cu->data().end()});
+	std::size_t offset;
+
+	switch(m_Form) {
+		case DW_FORM_ref1:
+			offset = cur.u8();
+			break;
+
+		case DW_FORM_ref2:
+			offset = cur.u16();
+			break;
+
+		case DW_FORM_ref4:
+			offset = cur.u32();
+			break;
+
+		case DW_FORM_ref8:
+			offset = cur.uleb128();
+			break;
+
+		case DW_FORM_ref_addr: {
+
+		}
+
+		default:
+			error::send("Invalid reference type");
+	}
+
+	cursor ref_cur({m_Cu->data().begin() + offset, m_Cu->data().end()});
+	return parse_die(*m_Cu, ref_cur);
+}
