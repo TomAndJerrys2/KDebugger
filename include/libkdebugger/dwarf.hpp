@@ -275,6 +275,25 @@ namespace kdebugger {
 		public:
 			class iterator {
 
+				public:
+				using value_type = die;
+				using reference = const die &;
+				using pointer = different_type = std::ptrdiff_t;
+				using iterator_category = std::forward_iterator_tag;
+
+				iterator() = default;
+				iterator(const iterator &) = default;
+				iterator & operator=(const iterator &) = default;
+
+				explicit iterator(const die & die);
+		
+				const die & operator * () const {
+					*m_Die;
+				}
+
+				const die * operator -> () const {
+					return &m_Die.value();
+				}
 			};
 
 			iterator begin() const {
