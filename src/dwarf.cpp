@@ -135,6 +135,10 @@ kdebugger::die::children_range::iterator & kdebugger::die::children_range::itera
 		m_Die = parse_die(*m_Die->m_Cu, next_cur);
 	} 
 
+	else if(m_Die->contains(DW_AT_sibling)) {
+		m_Die = m_Die.value()[DW_AT_sibling].as_reference();
+	}
+
 	else {
 		iterator sub_children(*m_Die);
 		while(sub_children->m_Abbrev)
@@ -314,3 +318,4 @@ std::string_view kdebugger::attr::as_string() const {
 			error::send("Invalid string type");
 	}
 }
+
