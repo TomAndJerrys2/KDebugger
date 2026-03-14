@@ -221,3 +221,31 @@ std::uint64_t kdebugger::attr::as_int() const {
 			error::send("Invalid integer type");
 	}
 }
+
+kdebugger::span<const std::byte> kdebugger::attr::as_block() const {
+	std::size_t size;
+	cursor cur({m_Location, m_Cu->data().end()});
+
+	switch(m_Form) {
+		case DW_FORM_block1:
+			size = cur.u8();
+			break;
+
+		case DW_FORM_block2:
+			size = cur.u16();
+			break;
+
+		case DW_FORM_block4:
+			size = cur.u32();
+			break;
+
+		case DW_FORM_block:
+			size = cur.uleb128();
+			break;
+
+		default:
+			error::send("Invalid block type");
+	}
+
+	return {cur.position(), size};
+}
