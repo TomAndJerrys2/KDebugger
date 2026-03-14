@@ -546,3 +546,42 @@ bool kdebugger::die::contains_address(file_addr address) const {
 
 	return false;
 }
+
+const kdebugger::compile_unit * kdebugger::dwarf::compile_unit_containing_address(file_addr address) const {
+	for(auto & cu : m_CompileUnits) {
+		if(cu->root().contains_address(address)) {
+			return cu.get();
+		}
+	}
+
+	return nullptr;
+}
+
+std::optional<kdebugger::die> kdebugger::dwarf::function_containing_address(file_addr address) const {
+	index();
+
+	for(auto & [name, entry] : m_FunctionIndex) {
+		cursor cur({entry.pos, entry.cu->data().end()});
+		auto d = parse_die(*entry.cu, cur);
+
+		if(d.contains_address(address) && d.abbrev_entry()->tag == DW_TAG_subprogram)
+			return d;
+	}
+
+	return std::nullopt;
+}
+
+std::vector<kdebugger::die> kdebugger::dwarf::find_functions(std::string name) const {
+	index();
+
+	std::vector<die> found;
+	auto [begin, end] = m_FunctionIndex.equal_range(name);
+	std::transform(begin, end, std::back_inserter(found), [] (auto & pair) {
+		auto [name, entry] = pair;
+		cursor cur({entry.pos, entry.cu->data().end()});
+
+		return parse_die(*entry.cu, cur);
+	});
+
+	return found;
+}
