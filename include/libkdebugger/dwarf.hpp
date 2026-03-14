@@ -275,6 +275,9 @@ namespace kdebugger {
 		public:
 			class iterator {
 
+				private:
+					std::optional<die> m_Die;
+
 				public:
 				using value_type = die;
 				using reference = const die &;
@@ -293,6 +296,14 @@ namespace kdebugger {
 
 				const die * operator -> () const {
 					return &m_Die.value();
+				}
+
+				iterator & operator ++ ();
+				iterator operator ++ (int);
+
+				bool operator == (const iterator & rhs) const;
+				bool operator != (const iterator & rhs) const {
+					return !(*this == rhs);
 				}
 			};
 
