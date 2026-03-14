@@ -427,3 +427,23 @@ std::string_view kdebugger::attr::as_string() const {
 	}
 }
 
+kdebugger::file_addr kdebugger::die::low_pc() const {
+	return (*this)[DW_AT_low_pc].as_address();
+}
+
+kdebugger::file_addr kdebugger::die::high_pc() const {
+	auto attr = (*this)[DW_AT_high_pc];
+	std::uint64_t addr;
+
+	if(attr.form() == DW_FORM_addr) {
+		addr = attr.as_address();
+	}
+
+	else {
+		addr = low_pc() + attr.as_int();
+	}
+
+	return file_addr {
+		*m_Cu->dwarf_info()->elf_file(), addr
+	};
+}
