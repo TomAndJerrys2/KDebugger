@@ -6,13 +6,12 @@
 #include <vector>
 #include <algorithm>
 #include <sstream>
+#include <format>
+#include <print>
 #include <memory>
 #include <csignal>
 
-// formatting options - will refactor to standard 20 usage
-// after build completion
-#include <fmt/format.h>
-#include <fmt/ranges.h>
+// Standard formatting/printing (C++20/23)
 
 // Linux system interfaces
 #include <sys/ptrace.h>
@@ -29,15 +28,55 @@
 #include <libkdebugger/disassembler.hpp>
 #include <libkdebugger/target.hpp>
 
+namespace {
+	template <typename T>
+	std::string format_one(const T & value, std::string_view spec) {
+		if(spec.empty()) {
+			return std::format("{}", value);
+		}
+
+		std::string fmt = std::string("{:") + std::string(spec) + "}";
+		return std::vformat(fmt, std::make_format_args(value));
+	}
+
+	template <typename Range>
+	std::string join_format(const Range & range, std::string_view sep, std::string_view spec) {
+		std::string out;
+		bool first = true;
+		for(const auto & item : range) {
+			if(!first) {
+				out.append(sep);
+			}
+			first = false;
+			out.append(format_one(item, spec));
+		}
+		return out;
+	}
+
+	template <typename It>
+	std::string join_format(It begin, It end, std::string_view sep, std::string_view spec) {
+		std::string out;
+		bool first = true;
+		for(auto it = begin; it != end; ++it) {
+			if(!first) {
+				out.append(sep);
+			}
+			first = false;
+			out.append(format_one(*it, spec));
+		}
+		return out;
+	}
+}
+
 // -- signal stop reason
 namespace {
     std::string get_signal_stop_reason(const kdebugger::target & target, kdebugger::stop_reason reason) {
         auto & process = target.get_process();
-        std::string message = fmt::format("stopped with signal {} at {:#x}", sigabbrev_np(reason.info), process.get_pc().addr());
+        std::string message = std::format("stopped with signal {} at {:#x}", sigabbrev_np(reason.info), process.get_pc().addr());
 
         auto func = target.get_elf().get_symbol_containing_address(process.get_pc());
         if(func && ELF64_ST_TYPE(func.value()->st_info) == STT_FUNC) {
-            message += fmt::format("({})", target.get_elf().get_string(func.value()->st_name));
+            message += std::format("({})", target.get_elf().get_string(func.value()->st_name));
         }
 
         if(reason.info == SIGTRAP)
@@ -94,23 +133,23 @@ namespace {
         if(reason.trap_reason == kdebugger::trap_type::software_break) {
             auto & site = process.breakpoint_sites().get_by_address(process.get_pc());
             
-            return fmt::format("(breakpoint {})", site_id());
+            return std::format("(breakpoint {})", site_id());
         }
 
         if(reason.trap_reason == kdebugger::trap_type::hardware_break) {
             auto id = process.get_current_hardware_stoppoint();
 
             if(id.index() == 0)
-                return fmt::format("(breakpoint {})", std::get<0>(id));
+                return std::format("(breakpoint {})", std::get<0>(id));
 
             std::string message;
             auto & point = process.watchpoints().get_by_id(std::get<1>(id));
-            message += fmt::format("(watchpoint {})", point.id());
+            message += std::format("(watchpoint {})", point.id());
 
             if(point.data() == point.previous_data())
-                message += fmt::format("\nValue: {:#x}", point.data());
+                message += std::format("\nValue: {:#x}", point.data());
             else
-                message += fmt::format("\nOld value: {:#x}\nNex value {:#x}", point.previous_data(), point.data());
+                message += std::format("\nOld value: {:#x}\nNex value {:#x}", point.previous_data(), point.data());
 
             return message;
         }
@@ -124,11 +163,11 @@ namespace {
 
             if(info.entry) {
                 message += "(syscall entry)\n";
-                message += fmt::format("syscall: {} ({:#x})", kdebugger::syscall_id_to_name(info.id),
-                        fmt::join(info.args, ","));
+                message += std::format("syscall: {} ({})", kdebugger::syscall_id_to_name(info.id),
+                        join_format(info.args, ",", "#x"));
             } else {
                 message += "(syscall exit)\n";
-                message += fmt::format("syscall returned: {:#x}", info.ret);
+                message += std::format("syscall returned: {:#x}", info.ret);
             }
 
             return message;
@@ -182,12 +221,12 @@ namespace {
         };
 
         if(process.watchpoints().empty())
-            fmt::print("No watchpoints set");
+            std::print("No watchpoints set");
         
         else
-            fmt::print("Current watchpoints");
+            std::print("Current watchpoints");
             process.watchpoints().for_each([&] (auto & point) {
-                    fmt::print("{}: address = {:#x}, mode = {}. size = {}, {}\n", 
+                    std::print("{}: address = {:#x}, mode = {}. size = {}, {}\n", 
                         point.id(), point.address().addr(), stoppoint_mode_to_string(point.mode()),
                         point.size(), point.is_enabled() ? "enabled" : "disabled"      
                     );
@@ -241,7 +280,7 @@ namespace {
 		auto instructions = dis.disassemble(n_instructions, address);
 		
 		for(auto & instr : instructions) {
-			fmt::print("{:#018x} : {}\n", instr.address.addr(), instr.text);
+			std::print("{:#018x} : {}\n", instr.address.addr(), instr.text);
 		}
 	}
 
@@ -328,7 +367,7 @@ namespace {
 			auto start = data.begin() + i;
 			auto end = data.begin() + std::min(i + 16, data.size());
 
-			fmt::print("{:#016x} : {:02x}\n", *address + i, fmt::join(start, end, " "));
+			std::print("{:#016x} : {}\n", *address + i, join_format(start, end, " ", "02x"));
 		}
 	}
 	
@@ -432,15 +471,15 @@ namespace {
 		auto format = [] (auto t) -> std::string {
 
 			if constexpr (std::is_floating_point_v<decltype(t)>) {
-				return fmt::format("{}", t);
+				return std::format("{}", t);
 			}
 
 			else if constexpr (std::is_integral_v<decltype(t)>) {
-				return fmt::format("{:#0{}x}", t, (sizeof(t) * 2) + 2);
+				return std::format("{:#0{}x}", t, (sizeof(t) * 2) + 2);
 			}
 
 			else {
-				return fmt::format("[{:#04x}]", fmt::join(t, ","));
+				return std::format("[{}]", join_format(t, ",", "#04x"));
 			}
 		}
 		
@@ -456,7 +495,7 @@ namespace {
 					continue;
 
 				auto value = process.get_registers().read(info);
-				fmt::print("{}:\t{}\n", info.name, std::visit(format, value));
+				std::print("{}:\t{}\n", info.name, std::visit(format, value));
 			}
 		}
 		
@@ -465,7 +504,7 @@ namespace {
 			try {
 				auto info = kdebugger::register_info_by_name().read(info);
 				auto value = process.get_registers().read(info);
-				fmt::print("{}:\t{}\n", info.name, std::visit(format, value));
+				std::print("{}:\t{}\n", info.name, std::visit(format, value));
 			} 
 			catch(kdebugger::error & err) {
 				std::cerr << "Invalid register name!\n";
@@ -577,16 +616,16 @@ namespace {
 		if(is_prefix(command, "list")) {
 
             if(process.breakpoint_sites().empty())
-				fmt::print("No Breakpoints set!\n");
+				std::print("No Breakpoints set!\n");
 
             else {
-				fmt::print("Current breakpoints:\n");
+				std::print("Current breakpoints:\n");
 				process.breakpoint_sites().for_each([] (auto & site) {
                 
                         if(site.is_internal())
                             return;
             
-                        fmt::print("{}: address = {:#x}, {}\n", 
+                        std::print("{}: address = {:#x}, {}\n", 
 						site.id(), site.address().addr(),
 						site.is_enabled() ? "enabled" : "disabled"
 					);
@@ -605,7 +644,7 @@ namespace {
 			auto address = kdebugger::to_integral<std::uint64_t>(args[2], 16);
 			
 			if(!address) {
-				fmt::print(stderr, 
+				std::print(stderr, 
 					"Breakpoint command expects address in hex format, prefixed with 0x\n");
 				return;
 			}
@@ -658,7 +697,7 @@ namespace {
 		else {
 			const char* program_path = argv[1];
 			auto target = kdebugger::target::launch(program_path);
-			fmt::print("Launched process with PID {}\n", target->get_process().pid());
+			std::print("Launched process with PID {}\n", target->get_process().pid());
 			return target;
 		}	
 	}
@@ -717,12 +756,12 @@ namespace {
 		std::string message;	
 		switch(reason.reason) {
 			case kdebugger::process_state::exited:
-				message = fmt::format("Exited with status: {}", 
+				message = std::format("Exited with status: {}", 
 						static_cast<int> (reason.info));
 				break;
 
 			case kdebugger::process_state::terminated:
-				message = fmt::format("Terminated with signal: {}", 
+				message = std::format("Terminated with signal: {}", 
 						sigabbrev_np(reason.info));
 				break;
 			
@@ -731,7 +770,7 @@ namespace {
                 break;
 		}
 		
-		fmt::print("Process {} {}\n", process.pid(), message);
+		std::print("Process {} {}\n", process.pid(), message);
 	}
 
 	// handles commands given by the command-line as arguments

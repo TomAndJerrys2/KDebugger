@@ -1,5 +1,5 @@
 {
 	"dependencies": [
-		"libedit", "catch2", "fmt", "zydis"
+		"libedit", "catch2", "zydis"
 	]
 }

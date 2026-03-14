@@ -28,7 +28,7 @@ set_target_properties(
 # integrate coroutines and possibly some meta-programming
 # C++20 & 23 features give. Just to show use-cases for 
 # newer language versions
-target_compile_features(libkdebugger PUBLIC cxx_std_17)
+target_compile_features(libkdebugger PUBLIC cxx_std_23)
 
 # Generator expression to contain public
 # includes in our project tree

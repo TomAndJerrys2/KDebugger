@@ -4,7 +4,6 @@ project("KDebugger" LANGUAGES CXX ASM)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(libedit REQUIRED IMPORTED_TARGET libedit)
-find_package(fmt CONFIG REQUIRED)
 find_package(zydis CONFIG REQUIRED)
 
 include(CTest)

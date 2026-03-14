@@ -5,3 +5,5 @@ target_link_libraries(kdebugger
 	PRIVATE kdebugger::libkdebugger 
 	PkgConfig::libedit
 )
+
+target_compile_features(kdebugger PRIVATE cxx_std_23)
