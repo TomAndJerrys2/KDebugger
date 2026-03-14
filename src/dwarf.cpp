@@ -154,3 +154,7 @@ kdebugger::die::children_range::iterator kdebugger::die::children_range::iterato
 
 	return tmp;
 }
+
+kdebugger::die::children_range kdebugger::die::children() const {
+	return children_range(*this);
+}
