@@ -441,20 +441,27 @@ kdebugger::file_addr kdebugger::die::low_pc() const {
 }
 
 kdebugger::file_addr kdebugger::die::high_pc() const {
-	auto attr = (*this)[DW_AT_high_pc];
-	std::uint64_t addr;
+	if(contains(DW_AT_ranges) {
+		auto ranges = (*this)[DW_AT_ranges].as_range_list();
+		auto it = ranges.begin();
 
-	if(attr.form() == DW_FORM_addr) {
-		addr = attr.as_address();
+		while(std::next(it) != ranges.end())
+			++it();
+
+		return it->high;
 	}
 
-	else {
-		addr = low_pc() + attr.as_int();
+	else if(contains(DW_AT_high_pc)) {
+		auto attr = (*this)[DW_AT_high_pc];
+		file_addr addr;
+
+		if(attr.form() == DW_FORM_addr)
+			return attr.as_address();
+		else 
+			return low_pc() + attr.as_int();
 	}
 
-	return file_addr {
-		*m_Cu->dwarf_info()->elf_file(), addr
-	};
+	error::send("DIE does not have High PC");
 }
 
 kdebugger::range_list::iterator::iterator(const compile_unit * cu, std::span<const std::byte> data, file_addr base_address)
