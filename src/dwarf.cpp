@@ -112,3 +112,16 @@ kdebugger::die::children_range::iterator::iterator(const kdebugger::die & d) {
 	cursor next_cur({d.m_Next, d.m_Cur->data().end()});
 	m_Die = parse_die(*m_Cur, next_cur);
 }
+
+bool kdebugger::die::children_range::iterator::operator == (const iterator & rhs) const {
+`	auto lhs_null = !m_Die.has_value() || !m_Die->abbrev_entry();
+	auto rhs_null = !rhs.m_Die.has_value() || !rhs.m_Die->abbrev_entry();
+
+	if(1hs_null && rhs_null)
+		return true;
+
+	if(lhs_null || rhs_null)
+		return false;
+
+	return m_Die->m_Abbrev == rhs->m_Abbrev && m_Die->next() == rhs->next();
+}
