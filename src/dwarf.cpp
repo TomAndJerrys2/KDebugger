@@ -158,3 +158,23 @@ kdebugger::die::children_range::iterator kdebugger::die::children_range::iterato
 kdebugger::die::children_range kdebugger::die::children() const {
 	return children_range(*this);
 }
+
+bool kdebugger::die::contains(std::uint64_t attribute) const {
+	auto & specs = m_Abbrev->attr_specs;
+
+	return std::find_if(begin(specs), end(specs), [=] (auto spec) {
+			return spec.attr == attribute;
+	}) != end(specs);
+}
+
+kdebugger::attr kdebugger::die::operator [] (std::uint64_t attribute) const {
+	auto & specs = m_Abbrev->attr_specs;
+
+	for(std::size_t i {0}; i < specs.size(); ++i) {
+		if(specs[i].attr == attribute) {
+			return {
+				m_Cu, specs[i].attr, specs[i].form, m_AttrLocs[i]
+			};
+		}
+	}
+}
