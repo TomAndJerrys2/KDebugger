@@ -107,3 +107,8 @@ kdebugger::die parse_die(const kdebugger::compile_unit & cu, cursor cur) {
 	auto next = cur.position();
 	return kdebugger::die(pos, &cu, &abbrev, std::move(attr_locs), next);
 }
+
+kdebugger::die::children_range::iterator::iterator(const kdebugger::die & d) {
+	cursor next_cur({d.m_Next, d.m_Cur->data().end()});
+	m_Die = parse_die(*m_Cur, next_cur);
+}
