@@ -483,3 +483,23 @@ kdebugger::range_list::iterator & kdebugger::range_list::iterator::operator ++ (
 
 	return *this;
 }
+
+kdebugger::range_list::iterator kdebugger::range_list::iterator::operator ++ (int) {
+	auto tmp = *this;
+	++(*this);
+
+	return tmp;
+}
+
+kdebugger::range_list kdebugger::attr::as_range_list() const {
+	auto section = m_Cu->dwarf_info()->elf_file()->get_section_contents(".debug_ranges");
+	auto offset = as_section_offset();
+	span<const std::byte> data(section.begin() + offset, section.end());
+
+	auto root = m_Cu->root();
+	file_addr base_address = root.contains(DW_AT_low_pc) 
+		? root[DW_AT_low_pc].as_address()
+		: file_addr {};
+
+	return {m_Cu, data, base_address};
+}
