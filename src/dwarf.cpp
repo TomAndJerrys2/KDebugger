@@ -197,3 +197,27 @@ std::uint32_t kdebugger::attr::as_section_offset() const {
 
 	return cur.u32();
 }
+
+std::uint64_t kdebugger::attr::as_int() const {
+	cursor cur({m_Location, m_Cu->data().end()});
+
+	switch(m_Form) {
+		case DW_FORM_data1:
+			return cur.u8();
+
+		case DW_FORM_data2:
+			return cur.u16();
+
+		case DW_FORM_data4:
+			return cur.u32();
+
+		case DW_FORM_data8:
+			return cur.u64();
+
+		case DW_FORM_udata:
+			return cur.uleb128();
+
+		default:
+			error::send("Invalid integer type");
+	}
+}
