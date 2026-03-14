@@ -114,7 +114,7 @@ kdebugger::die::children_range::iterator::iterator(const kdebugger::die & d) {
 }
 
 bool kdebugger::die::children_range::iterator::operator == (const iterator & rhs) const {
-`	auto lhs_null = !m_Die.has_value() || !m_Die->abbrev_entry();
+	auto lhs_null = !m_Die.has_value() || !m_Die->abbrev_entry();
 	auto rhs_null = !rhs.m_Die.has_value() || !rhs.m_Die->abbrev_entry();
 
 	if(1hs_null && rhs_null)
@@ -124,4 +124,26 @@ bool kdebugger::die::children_range::iterator::operator == (const iterator & rhs
 		return false;
 
 	return m_Die->m_Abbrev == rhs->m_Abbrev && m_Die->next() == rhs->next();
+}
+
+kdebugger::die::children_range::iterator & kdebugger::die::children_range::iterator::operator ++ () {
+	if(!m_Die.has_value() || !m_Die->m_Abbrev)
+		return *this;
+
+	if(!m_Die->m_Abbrev->has_children) {
+		cursor next_cur({m_Die->m_Next, m_Die->m_Cu->data().end()});
+		m_Die = parse_die(*m_Die->m_Cu, next_cur);
+	} 
+
+	else {
+		iterator sub_children(*m_Die);
+		while(sub_children->m_Abbrev)
+			++sub_children;
+
+		cursor next_cur({sub_children->m_Next, m_Die->m_Cu->data().end()});
+
+		m_Die = parse_die(*m_Die->m_Cu, next_cur);
+	}
+
+	return *this;
 }
