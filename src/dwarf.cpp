@@ -294,3 +294,23 @@ kdebugger::die kdebugger::attr::as_reference() const {
 	cursor ref_cur({m_Cu->data().begin() + offset, m_Cu->data().end()});
 	return parse_die(*m_Cu, ref_cur);
 }
+
+std::string_view kdebugger::attr::as_string() const {
+	cursor cur({m_Location, m_Cu->data().end()});
+
+	switch(m_Form) {
+		case DW_FORM_string:
+			return cur.string();
+
+		case DW_FORM_strp: {
+			auto offset = cur.u32();
+			auto stabd = m_Cu->dwarf_info()->elf_file()->get_section_contents(".debug_str");
+
+			cursor stab_cur({stab.begin() + offset, stab.endd()});
+			return stab_cur.string();
+		}
+
+		default:
+			error::send("Invalid string type");
+	}
+}
