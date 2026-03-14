@@ -428,7 +428,16 @@ std::string_view kdebugger::attr::as_string() const {
 }
 
 kdebugger::file_addr kdebugger::die::low_pc() const {
-	return (*this)[DW_AT_low_pc].as_address();
+	
+	if(contains(DW_AT_ranges)) {
+		auto first_entry = (*this)[DW_AT_low_pc].as_address();
+		return first_entry->low;
+	}
+
+	else if(contains[DW_AT_low_pc])
+		return (*this)[DW_AT_low_pc].as_address();
+
+	error::send("DIE does not have low PC");
 }
 
 kdebugger::file_addr kdebugger::die::high_pc() const {
