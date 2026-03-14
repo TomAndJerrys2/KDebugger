@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
+#include <string_view>
 
 // I will implement this later... whole lotta constants lmao
 #include <libkdebugger/detail/dwarf.h>
@@ -347,4 +348,37 @@ namespace kdebugger {
 
 			const std::unordered_map<std::uint64_t, kdebugger::abbrev> & abbrev_table() const;
 	};
+}
+
+namespace kdebugger {
+	class compile_unit;
+	class die;
+
+	class attr {
+		
+		private:
+			const compile_unit * m_Cu;
+			std::uint64_t m_Type;
+			std::uint64_t m_Form;
+			const std::byte * m_Location;
+
+		public:
+			attr(const compile_unit * cu, std::uint64_t type, std::uint64_t form, const std::byte * location)	
+				: m_Cu {cu}, m_Type {type}, m_Form {form}, m_Location {location} {}
+
+			std::uint64_t name() const {
+				return m_Type;
+			}
+
+			std::uint64_t form() const {
+				return m_Form;
+			}
+
+			file_addr as_address() const;
+			std::uint32_t as_section_offset() const;
+			span<const std::byte> as_block() const;
+			std::uint64_t as_int() const;
+			std::string_view as_string() const;
+			die as_reference() const;
+	}
 }
