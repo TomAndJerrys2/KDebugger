@@ -517,3 +517,16 @@ bool kdebugger::range_list::contains(file_addr address) const {
 		return e.contains(address);
 	});
 }
+
+bool kdebugger::die::contains_address(file_addr address) const {
+	if(address.elf_file() != this->m_Cu->dwarf_info()->elf_file())
+		return false;
+
+	if(contains(DW_AT_ranges))
+		return (*this)[DW_AT_ranges].as_range_list().contains(address);
+
+	else if(contains(DW_AT_low_pc))
+		return low_pc() <= address && high_pc() > address;
+
+	return false;
+}
