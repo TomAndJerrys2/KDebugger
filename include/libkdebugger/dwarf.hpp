@@ -189,6 +189,8 @@ namespace kdebugger {
 			file_addr high_pc() const;
 
 			bool contains_address(file_addr address) const;
+	
+			std::optional<std::string_view> name() const;
 	}
 
 	class die::children_range {

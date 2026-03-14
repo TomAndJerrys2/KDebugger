@@ -585,3 +585,25 @@ std::vector<kdebugger::die> kdebugger::dwarf::find_functions(std::string name) c
 
 	return found;
 }
+
+void kdebugger::dwarf::index() const {
+	if(!m_FunctionIndex.empty())
+		return;
+
+	for(auto & cu : m_CompileUnits) {
+		index_die(cu->root());
+	}
+}
+
+std::optional<std::string_view> kdebugger::die::name() const {
+	if(contains(DW_AT_name))
+		return (*this)[DW_AT_name].as_string();
+
+	if(contains(DW_AT_specification))
+		return (*this)[DW_AT_specification].as_reference().name();
+
+	if(contains(DW_AT_abstract_origin))
+		return (*this)[DW_AT_abstract_origin].as_reference().name();
+
+	return std::nullopt;
+}
