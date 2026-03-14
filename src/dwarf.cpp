@@ -147,3 +147,10 @@ kdebugger::die::children_range::iterator & kdebugger::die::children_range::itera
 
 	return *this;
 }
+
+kdebugger::die::children_range::iterator kdebugger::die::children_range::iterator::operator ++ (int) {
+	auto tmp = *this;
+	++(*this);
+
+	return tmp;
+}
