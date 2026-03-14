@@ -18,10 +18,21 @@ namespace kdebugger {
 
 	class dwarf {
 		
-		const elf * m_Elf;
+		private:
+			const elf * m_Elf;
 
-		std::vector<std::unique_ptr<compile_unit>> m_CompileUnits
-		std::unordered_map<std::size_t, std::unordered_map<std::uint64_t, abbrev>> m_AbbrevTables;
+			std::vector<std::unique_ptr<compile_unit>> m_CompileUnits
+			std::unordered_map<std::size_t, std::unordered_map<std::uint64_t, abbrev>> m_AbbrevTables;
+
+			void index() const;
+			void index_die(const die & current) const;
+
+			struct index_entry {
+				const compile_unit * cu;
+				const std::byte * pos;
+			};
+
+			mutable std::unordered_multimap<std::string, index_entry> m_FunctionIndex;
 
 		public:
 			dwarf(const elf & parent);
@@ -32,6 +43,11 @@ namespace kdebugger {
 			const std::vector<std::unique_ptr<compile_unit>> & compile_units() const {
 				return m_CompileUnits
 			}
+
+			const compile_unit * compile_unit_containing_address(file_addr address) const;
+			std::optional<die> function_containing_address(file_addr address) const;
+
+			std::vector<die> find_functions(std::string name) const;
 	};
 
 	class cursor {
@@ -171,6 +187,8 @@ namespace kdebugger {
 
 			file_addr low_pc() const;
 			file_addr high_pc() const;
+
+			bool contains_address(file_addr address) const;
 	}
 
 	class die::children_range {
@@ -345,5 +363,7 @@ namespace kdebugger {
 			std::uint64_t as_int() const;
 			std::string_view as_string() const;
 			die as_reference() const;
+
+			range_list as_range_list() const;
 	}
 }
