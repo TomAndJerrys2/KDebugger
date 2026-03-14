@@ -503,3 +503,17 @@ kdebugger::range_list kdebugger::attr::as_range_list() const {
 
 	return {m_Cu, data, base_address};
 }
+
+kdebugger::range_list::iterator kdebugger::range_list::begin() const {
+	return {m_Cu, m_Data, m_BaseAddress}:
+}
+
+kdebugger::range_list::iterator kdebugger::range_list::end() const {
+	return {};
+}
+
+bool kdebugger::range_list::contains(file_addr address) const {
+	return std::any_of(begin(), end(), [=] (auto & e) {
+		return e.contains(address);
+	});
+}
