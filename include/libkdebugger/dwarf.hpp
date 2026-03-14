@@ -168,6 +168,9 @@ namespace kdebugger {
 
 			bool contains(std::uint64_t attribute) const;
 			attr operator [] (std::uint64_t attribute) const;
+
+			file_addr low_pc() const;
+			file_addr high_pc() const;
 	}
 
 	class die::children_range {
@@ -251,6 +254,33 @@ namespace kdebugger {
 namespace kdebugger {
 	class compile_unit;
 	class die;
+
+	class range_list {
+		
+		private:
+			const compile_unit * m_Cu;
+			span<const std::byte> m_Data;
+			file_addr m_BaseAddress;
+
+		public:
+			range_list(const compile_unit * cu, span<const std::byte> data, file_addr base_address)
+				: m_Cu {cu}, m_Data {data}, m_BaseAddress {base_address} {}
+	
+			struct entry {
+				file_addr low;
+				file_addr high;
+
+				bool contains(file_addr addr) const {
+					return low <= addr && addr < high;
+				}
+			}
+
+			class iterator;
+			iterator begin() const;
+			iterator end() const;
+
+			bool contains(file_addr address) const;
+	};
 
 	class attr {
 		
