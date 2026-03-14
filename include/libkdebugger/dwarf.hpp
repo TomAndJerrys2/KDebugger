@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdint>
 #include <memory>
+#include <optional>
 
 // I will implement this later... whole lotta constants lmao
 #include <libkdebugger/detail/dwarf.h>
