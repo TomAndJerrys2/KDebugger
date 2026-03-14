@@ -282,6 +282,43 @@ namespace kdebugger {
 			bool contains(file_addr address) const;
 	};
 
+	class range_list::iterator {
+	
+		private:
+			const compile_unit * m_Cu {nullptr};
+			span<const std::byte> m_Data {nullptr, nullptr};
+			file_addr m_BaseAddress;
+			const std::byte * m_Pos {nullptr};
+			entry m_Current;
+
+		public:
+			using value_type = entry;
+			using reference = const entry &;
+			using pointer = const entry *;
+			using difference_type = std::ptrdiff_t;
+			using iterator_category = std::forward_iterator_tag;
+
+			iterator(const compile_unit* cu, span<const std::byte> data, file_addr base_address);
+
+			iterator() = default;
+			iterator(const iterator &) = default;
+			iterator & operator = (const iterator &) = default;
+
+			const entry & operator * () const { return m_Current; }
+			const entry * operator -> () const { return &m_Current; }
+
+			bool operator == (iterator rhs) const {
+				return m_Pos == rhs.m_Pos;
+			}
+
+			bool operator != (iterator rhs) const {
+				return m_Pos != rhs.m_Pos;
+			}
+
+			iterator & operator ++ ();
+			iterator operator ++ (int);
+	};
+
 	class attr {
 		
 		private:
