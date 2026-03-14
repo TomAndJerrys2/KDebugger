@@ -272,7 +272,19 @@ kdebugger::die kdebugger::attr::as_reference() const {
 			break;
 
 		case DW_FORM_ref_addr: {
+			offset = cur.u32();
+			auto section = m_Cu->dwarf_info()->elf_file()->get_section_contents(".debug_info");
+			auto die_pos = section.begin() + offset;
+			auto & cus = m_Cu->dwarf_info()->compile_units();
 
+			auto cu_finder = [=] (auto & cu) {
+				return cu->data().begin() <= die_pos && cu->data().end() > die_pos;
+			}
+
+			auto cu_for_offset = std::find_if(begin(cus), end(cus), cu_finder);
+			cursor ref_cur({die_pos, cu_for_offset->get()->data().end()});
+
+			return parse_die(**cu_for_offset, ref_cur);
 		}
 
 		default:
