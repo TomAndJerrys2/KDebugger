@@ -7,6 +7,114 @@ const std::unordered_map<std::uint64_t, kdebugger::abbrev> & kdebugger::dwarf::g
 	return m_AbbrevTables.at(offset);
 }
 
+std::string_view string() {
+	auto null_terminator = std::find(m_Pos, m_Data.end(), std::byte{0});
+	std::string_view ret(reinterpret_cast<const char *>(m_Pos));
+
+	m_Pos = null_terminator + 1;
+	return ret;
+}
+	
+std::uint64_t uleb128() {
+	std::uint64_t res = 0;
+	int shift = 0;
+	std::uint8_t byte = 0;
+
+	do {
+		byte = u8;
+		auto masked = static_cast<uint64_t>(byte & 0x7f);
+		res |= masked << shift;
+
+		shift += 7;
+	} while((byte & 0x80) != 0);
+
+	return res;
+}
+
+std::int64_t sleb128() {
+	std::uint64_t res = 0;
+	int shift = 0;
+	std::uint8_t byte;
+
+	do {
+		byte = u8();
+		auto masked = static_cast<uint64_t>(byte & 0x7f);
+		res |= masked << shift;
+
+		shift += 7;
+	} while((byte & 0x80) != 0);
+
+	if((shift < sizeof(res)) && (byte & 0x40))
+		res |= (~static_cast<std::uint64_t>(0) << shift);
+
+	return res;
+}
+	
+void skip_form(std::uint64_t form) {
+	switch(form) {
+				
+		case DW_FORM_data1:
+		case DW_FORM_ref1:
+		case DW_FORM_flag:
+			m_Pos += 1;
+			break;
+
+		case DW_FORM_data2:
+		case DW_FORM_ref2:
+			m_Pos += 2;
+			break;
+
+		case DW_FORM_data4:
+		case DW_FORM_ref4:
+		case DW_FORM_ref_addr:
+		case DW_FORM_sec_offset:
+		case DW_FORM_strp:
+			m_Pos += 4;
+			break;
+
+		case DW_FORM_sdata:
+			sleb128();
+			break;
+
+		case DW_FORM_udata:
+		case DW_FORM_ref_udata:
+			uleb128();
+			break;
+
+		 case DW_FORM_block1:
+			m_Pos += u8();
+			break;
+
+		case DW_FORM_block2:
+			m_Pos += u16();
+			break;
+
+		case DW_FORM_block4:
+			m_Pos += u32();
+			break;
+
+		case DW_FORM_block:
+		case DW_FORM_exprloc:
+			m_Pos += uleb128();
+			break;
+
+		case DW_FORM_string:
+			while(!finished() && *m_Pos != std::byte(0)) {
+				++m_Pos;
+			}
+
+			++m_Pos;
+			break;
+
+		case DW_FORM_indirect:
+			skip_form(uleb128());
+			break;
+
+		default:
+			kdebugger::error::send("Unrecognized DWARF form");
+	}
+}
+
 // will refactor this later
 std::unordered_map<std::uint64_t, kdebugger::abbrev> parse_abbrev_table(const kdebugger::elf & obj, std::size_t size) {
 	cusor cur(obj.get_section_contents(".debug_abbrev"));
