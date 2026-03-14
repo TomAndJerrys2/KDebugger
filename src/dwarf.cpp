@@ -178,3 +178,22 @@ kdebugger::attr kdebugger::die::operator [] (std::uint64_t attribute) const {
 		}
 	}
 }
+
+kdebugger::file_addr kdebugger::as_address() const {
+	cursor cur({m_Location, m_Cu->data().end()});
+	if(m_Form != DW_FORM_addr)
+		error::send("Invalid address type");
+
+	auto elf = m_Cu->dwarf_info()->elf_file();
+
+	return file_addr{*elf, cur.u64()};
+}
+
+std::uint32_t kdebugger::attr::as_section_offset() const {
+	cursor cur({m_Location, m_Cu->data().end()});
+
+	if(m_Form != DW_FORM_sec_offset)
+		error::send("Invalid offset type");
+
+	return cur.u32();
+}
