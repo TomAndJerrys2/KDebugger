@@ -266,6 +266,9 @@ namespace kdebugger {
 
 			class children_range;
 			children_range children() const;
+
+			bool contains(std::uint64_t attribute) const;
+			attr operator [] (std::uint64_t attribute) const;
 	}
 
 	class die::children_range {
