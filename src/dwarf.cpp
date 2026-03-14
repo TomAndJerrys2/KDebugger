@@ -447,3 +447,39 @@ kdebugger::file_addr kdebugger::die::high_pc() const {
 		*m_Cu->dwarf_info()->elf_file(), addr
 	};
 }
+
+kdebugger::range_list::iterator::iterator(const compile_unit * cu, std::span<const std::byte> data, file_addr base_address)
+	: m_Cu {cu}, m_Data {data}, m_BaseAddress {base_address}, m_Pos {data.begin()} {
+	++(*this);
+}
+
+kdebugger::range_list::iterator & kdebugger::range_list::iterator::operator ++ () {
+	auto elf = m_Cu->dwarf_info()->elf_file();
+	constexpr auto base_address_flag = ~static_cast<std::uint64_t>(0);
+
+	cursor cur({m_Pos, m_Data.end()});
+
+	while(true) {
+		m_Current.low = file_addr {*elf, cur.u64()};
+		m_Current.high = file_addr {*elf, cur.u64()};
+
+		if(m_Current.low.addr() == base_address_flag) {
+			m_BaseAddress = m_Curremt.high;
+		}
+
+		else if(m_Current.low.addr() == 0 && m_Current.high.addr() == 0) {
+			m_Pos = nullptr;
+			break;
+		}
+
+		else {
+			m_Pos = cur.position();
+			m_Current.low += m_BaseAddress.addr();
+			m_Current.high += m_BaseAddress.addr();
+
+			break;
+		}
+	}
+
+	return *this;
+}
