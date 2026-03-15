@@ -167,6 +167,10 @@ namespace kdebugger {
 			line_table(const line_table &) = delete;
 			line_table & operator = (const line_table &) = delete;
 
+			class iterator;
+			iterator begin() const;
+			iterator end() const;
+
 		private:
 			kdebugger::span<const std::byte> m_Data;
 			const compile_unit * m_Cu;
@@ -199,6 +203,47 @@ namespace kdebugger {
 				column == rhs.column &&
 				discriminator == rhs.discriminator;
 		}
+	};
+
+	class line_table::iterator {
+		
+		private:
+			const line_table * m_Table;
+			line_table::entry m_Current;
+			line_table::entry m_Registers;
+			const std::byte * m_Pos;
+
+		public:
+			using value_type = entry;
+			using pointer = const entry *;
+			using reference = const entry &;
+			using difference_type = std::ptrdiff_t;
+			using iterator_category = std::forward_iterator_tag;
+
+			iterator(const line_table * table);
+
+			iterator() = default;
+			iterator(const iterator &) = default;
+			iterator & operator = (const iterator &) = default;
+
+			const line_table::entry & operator * () const {
+				return m_Current;
+			}
+
+			const line_table::entry * operator -> () const {
+				return &m_Current;
+			}
+
+			bool operator == (const iterator & rhs) const {
+				return m_Pos == rhs.m_Pos;
+			}
+
+			bool operator != (const iterator & rhs) const {
+				return m_Pos != rhs.m_Pos;
+			}
+
+			iterator & operator ++ ();
+			iterator operator ++ (int);
 	};
 
 	// abbreviation table storage types
