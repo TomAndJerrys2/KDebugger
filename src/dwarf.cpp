@@ -622,3 +622,8 @@ void kdebugger::dwarf::index_die(const die & current) const {
 		index_die(child);
 	}
 }
+
+kdebugger::compile_unit::compile_unit(dwarf & parent, span<const std::byte> data, std::size_t abbrev_offset)
+	: m_Parent {&parent}, m_Data {data}, m_AbbrevOffset {abbrev_offset} {
+	m_LineTable = parse_line_table(*this);
+}
