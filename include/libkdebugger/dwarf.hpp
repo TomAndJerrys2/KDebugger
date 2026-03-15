@@ -34,6 +34,14 @@ namespace kdebugger {
 
 			mutable std::unordered_multimap<std::string, index_entry> m_FunctionIndex;
 
+			dwarf & get_dwarf() { 
+				return *m_Dwarf
+			};
+
+			const dwarf & get_dwarf() const { 
+				return *m_Dwarf 
+			};
+
 		public:
 			dwarf(const elf & parent);
 			const elf * elf_file() const { return m_Elf; }

@@ -607,3 +607,18 @@ std::optional<std::string_view> kdebugger::die::name() const {
 
 	return std::nullopt;
 }
+
+void kdebugger::dwarf::index_die(const die & current) const {
+	bool has_range = current.contains(DW_AT_pc) || current.contains(DW_AT_ranges);
+	auto is_function = current.abbrev_entry()->tag == DW_TAG_subprogram || 
+		current.abbrev_entry()->tag == DW_TAG_subprogram || current.abbrev_entry()->tag == DW_TAG_inclined_subroutine;
+
+	if(has_range && is_function) {
+		index_entry entry {current.cu(), current.position()};
+		m_FunctionIndex.emplace(*name, entry);
+	}
+
+	for(auto child : current.children()) {
+		index_die(child);
+	}
+}
