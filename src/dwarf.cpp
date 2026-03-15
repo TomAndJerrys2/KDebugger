@@ -627,3 +627,71 @@ kdebugger::compile_unit::compile_unit(dwarf & parent, span<const std::byte> data
 	: m_Parent {&parent}, m_Data {data}, m_AbbrevOffset {abbrev_offset} {
 	m_LineTable = parse_line_table(*this);
 }
+
+// line table parser
+namespace {
+	std::unique_ptr<kdebugger::line_table> parse_line_table(const kdebugger::compile_unit & cu) {
+		auto section = cu.dwarf_info()->elf_file()->get_section_contents(".debug_line");
+		if(!cu.root().contains(DW_AT_stmt_list))
+			return nullptr;
+
+		auto offset = cu.root()[DW_AT_stmt_list].as_section_offset();
+		cursor cur({section.begin() + offset, section.end()});
+
+		auto size = cur.u32();
+		auto end = cur.position() + size;
+		auto version = cur.u16();
+
+		if(version != 4)
+			kdebugger::error::send("Only DWARF 4 is supported right now");
+
+		// header length
+		(void)cur.u32();
+
+		auto minimum_instruction_length = cur.u8();
+		if(minimum_instruction_length != 1)
+			kdebugger::error::send("Invalid minimum instruction length");
+
+		auto maximum_operations_per_instruction = cur.u8();
+		if(maximum_operations_per_instruction != 1)
+			kdebugger::send("Invalid maximum operations per instruction");
+
+		auto default_is_stmt = cur.u8();
+		auto line_base = cur.u8();
+		auto line_range = cur.u8();
+		auto opcode_base = cur.u8();
+
+		std::array<std::uint8_t, 12> expected_opcode_length {
+			0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1
+		};
+
+		for(auto i {0}; i < opcode_base - 1; ++i) {
+			if(cur.u8() != expected_opcode_lengths[i])
+				kdebugger::error::send("Unexpected opcode lengths");
+		}
+
+		std::vector<std::filesystem::path> include_directories;
+		std::filesystem::path compilation_dir (cu.root()[DW_AT_comp_dir].as_string());
+		for(auto dir = cur.string(); !dir.empty(); dir = cur.string()) {
+			if(dir[0] == '/')
+				include_directories.push_back(std::string(dir));
+			else
+				include_directories.push_back(compilation_dir / std::string(dir));
+		}
+	
+		std::vector<kdebugger::line_table::file> file_names;
+		while(*cur.position() != std::byte(0)) {
+			file_names.push_back(
+				parse_line_table_file(cur, compilation_dir, include_directories)
+			);
+		}
+
+		cur += 1;
+
+		std::span<const std::byte> data {cur.position(), end};
+		return std::make_unique<kdebugger::line_table> (data, &cu, 
+				default_is_stmt, line_base, line_range, opcode_base, 
+					std::move(include_directories), std::move(file_names)
+		);
+	}
+}
