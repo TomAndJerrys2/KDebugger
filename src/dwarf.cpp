@@ -840,6 +840,18 @@ bool kdebugger::line_table::iterator::execute_instruction() {
 		}
 	}
 
+	else {
+		auto adjusted_opcode = opcode - m_Table->m_OpcodeBase;
+		m_Registers.address += adjusted_opcode / m_Table->m_LineRange;
+		m_Registers.line += m_Table->m_LineBase + (adjusted_opcode % m_Table->m_LineRange);
+		m_Current = m_Registers;
+		m_Registers.basic_block_start = false;
+		m_Registers.prologue_end = false;
+		m_Registers.epilogue_begin = false;
+		m_Registers.discriminator = 0;
+		emitted = true;
+	}
+
 	m_Pos = cur.position();
 	return emitted;
 }
