@@ -855,3 +855,29 @@ bool kdebugger::line_table::iterator::execute_instruction() {
 	m_Pos = cur.position();
 	return emitted;
 }
+
+kdebugger::line_table::iterator kdebugger::line_table::get_entry_by_address(file_addr address) const {
+	auto prev = begin();
+	if(prev == end())
+		return prev;
+
+	auto it = prev;
+	for(++it; it != end(); prev = it++) {
+		if(prev->address <= address && it->address > address && !prev->end_sequence) {
+			return prev;
+		}
+	}
+
+	return end();
+}
+
+bool path_ends_in(const std::filesystem::path & lhs, const std::filesystem::path & rhs) {
+	auto lhs_size = std::distance(lhs.begin(), lhs.end());
+	auto rhs_size = std::distance(rhs.begin(), rhs.end());
+
+	if(rhs_size > lhs_size)
+		return false;
+
+	auto start = std::next(lhs.begin(), lhs_size - rhs_size);
+	return std::equal(start, lhs.end(), rhs.begin());
+}
