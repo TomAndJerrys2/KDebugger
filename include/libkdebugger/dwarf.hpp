@@ -147,6 +147,8 @@ namespace kdebugger {
 				std::uint64_t file_length;
 			};
 
+			struct entry;
+
 			line_table(kdebugger::span<const std::byte> data, const compile_unit * cu, 
 					bool default_is_stmt, std::int8_t line_base, std::uint8_t line_range,
 						std::uint8_t opcode_base, std::vector<std::filesystem::path> include_directories,
@@ -175,6 +177,20 @@ namespace kdebugger {
 
 			std::vector<std::filesystem::path> m_IncludeDirectories;
 			mutable std::vector<file> m_FileNames;
+	};
+
+	struct line_table::entry {
+		file_addr address;
+		std::uint64_t file_index = 1;
+		std::uint64_t line = 1;
+		std::uint64_t column = 0;
+		bool is_stmt;
+		bool basic_block_start = false;
+		bool end_sequence = false;
+		bool prologue_end = false;
+		bool epilogue_begin = false;
+		std::uint64_t discriminator = 0;
+		file * file_entry;
 	};
 
 	// abbreviation table storage types
@@ -301,10 +317,10 @@ namespace kdebugger {
 			dwarf * m_Parent;
 			span<const std::byte> m_Data;
 			std::size_t m_AbbrevOffset;
+			std::unique_ptr<line_table> m_LineTable;
 
 		public:
-			compile_unit(dwarf & parent, span<const std::byte> data, std::size_t abbrev_offset)
-				: m_Parent {parent}, m_Data {data}, m_AbbrevOffset {abbrev_offset} {}
+			compile_unit(dwarf & parent, span<const std::byte> data, std::size_t abbrev_offset);
 
 			die root() const;
 			
@@ -317,6 +333,10 @@ namespace kdebugger {
 			}
 
 			const std::unordered_map<std::uint64_t, kdebugger::abbrev> & abbrev_table() const;
+	
+			const line_table & lines() const {
+				return *m_LineTable;
+			}
 	};
 }
 
