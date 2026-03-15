@@ -147,6 +147,21 @@ namespace kdebugger {
 				std::uint64_t file_length;
 			};
 
+			line_table(kdebugger::span<const std::byte> data, const compile_unit * cu, 
+					bool default_is_stmt, std::int8_t line_base, std::uint8_t line_range,
+						std::uint8_t opcode_base, std::vector<std::filesystem::path> include_directories,
+							std::vector<file> file_names) : m_Data {data}, m_DefaultIsStmt {default_is_stmt}, 
+								m_LineBase {line_base}, m_LineRange {line_range}, m_OpcodeBase {opcode_base},
+									m_IncludeDirectories {std::move(include_directories)}, m_FileNames {std::move(file_names)} {}
+
+			const compile_unit & cu() const {
+				return *m_Cu;
+			}
+
+			const std::vector<file> & file_names() const {
+				return m_FileNames;
+			}
+
 		private:
 			kdebugger::span<const std::byte> m_Data;
 			const compile_unit * m_Cu;
