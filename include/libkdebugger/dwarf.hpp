@@ -213,6 +213,8 @@ namespace kdebugger {
 			line_table::entry m_Registers;
 			const std::byte * m_Pos;
 
+			bool execute_instruction();
+
 		public:
 			using value_type = entry;
 			using pointer = const entry *;

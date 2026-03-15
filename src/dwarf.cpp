@@ -727,3 +727,17 @@ kdebugger::line_table::iterator kdebugger::line_table::begin() const {
 kdebugger::line_table::iterator kdebugger::line_table::end() const {
 	return {};
 }
+
+kdebugger::line_table::iterator & kdebugger::line_table::iterator::operator ++ () {
+	if(m_Pos == m_Table->m_Data.end()) {
+		m_Pos = nullptr;
+		return *this;
+	}
+
+	bool emitted = false;
+	do emitted = execute_instruction();
+	while(!emitted);
+
+	m_Current.file_entry = &m_Table->m_FileNames[m_Current.file_index - 1];
+	return *this;
+}
