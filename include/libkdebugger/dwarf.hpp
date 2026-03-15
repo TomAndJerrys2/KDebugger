@@ -191,6 +191,14 @@ namespace kdebugger {
 		bool epilogue_begin = false;
 		std::uint64_t discriminator = 0;
 		file * file_entry;
+
+		bool operator == (const entry & rhs) const {
+			return address == rhs.address &&
+				file_index == rhs.file_index &&
+				line == rhs.line &&
+				column == rhs.column &&
+				discriminator == rhs.discriminator;
+		}
 	};
 
 	// abbreviation table storage types
