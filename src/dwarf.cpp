@@ -713,3 +713,17 @@ namespace {
 		);
 	}
 }
+
+kdebugger::line_table::iterator::iterator(const kdebugger::line_table * table) 
+	: m_Table {table}, m_Pos {table->m_Data.begin()} {
+	m_Registers.is_stmt = table->m_DefaultIsStmt;
+	++(*this);
+}
+
+kdebugger::line_table::iterator kdebugger::line_table::begin() const {
+	return iterator(this);
+}
+
+kdebugger::line_table::iterator kdebugger::line_table::end() const {
+	return {};
+}
