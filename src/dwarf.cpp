@@ -630,6 +630,24 @@ kdebugger::compile_unit::compile_unit(dwarf & parent, span<const std::byte> data
 
 // line table parser
 namespace {
+	kdebugger::line_table::file parse_line_table_file(cursor & cur, std::filesystem::path compilation_dir, 
+			const std::vector<std::filesystem::path> & include_directories) {
+		auto file = cur.string();
+		auto dir_index = cur.uleb128();
+		auto modication_time = cur.uleb128();
+		auto file_length = cur.uleb128();
+
+		std::filesystem::path path = file;
+		if(file[0] != '/') {
+			if(dir_index == 0)
+				path = compilation_dir / std::string(file);
+			else
+				path = include_directories[dir_index - 1] / std::string(file);
+		}
+
+		return {path.string(), modification_time, file_length};
+	}
+
 	std::unique_ptr<kdebugger::line_table> parse_line_table(const kdebugger::compile_unit & cu) {
 		auto section = cu.dwarf_info()->elf_file()->get_section_contents(".debug_line");
 		if(!cu.root().contains(DW_AT_stmt_list))
