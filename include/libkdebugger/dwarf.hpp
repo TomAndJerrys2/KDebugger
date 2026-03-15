@@ -137,7 +137,28 @@ namespace kdebugger {
 }
 
 namespace kdebugger {
-	
+
+	class line_table {
+		
+		public:
+			struct file {
+				std::filesystem::path path;
+				std::uint64_t modification_time;
+				std::uint64_t file_length;
+			};
+
+		private:
+			kdebugger::span<const std::byte> m_Data;
+			const compile_unit * m_Cu;
+			bool m_DefaultIsStmt;
+			std::int8_t m_LineBase;
+			std::uint8_t m_LineRange;
+			std::uint8_t m_OpcodeBase;
+
+			std::vector<std::filesystem::path> m_IncludeDirectories;
+			mutable std::vector<file> m_FileNames;
+	};
+
 	// abbreviation table storage types
 	struct attr_spec {
 		std::uint64_t attr;
