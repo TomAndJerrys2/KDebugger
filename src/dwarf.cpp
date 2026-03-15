@@ -756,7 +756,55 @@ bool kdebugger::line_table::iterator::execute_instruction() {
 	bool emitted = false;
 
 	if(opcode > 0 && opcode < m_Table->m_OpcodeBase) {
-		// handle standard opcodes
+		switch(opcode) {
+			case DW_LNS_copy:
+				m_Current = m_Registers;
+				m_Registers.basic_block_start = false;
+				m_Registers.prologue_end = false;
+				m_Registers.epilogue_begin = false;
+				m_Registers.discriminator = 0;
+
+				emitted = true;
+				break;
+	
+			case DW_LNS_advance_pc:
+				m_Registers.address += cur.sleb128();
+				break;
+
+			case DW_LNS_set_file:
+				m_Registers.column = cur.uleb128();
+				break;
+
+			case DW_LNS_negate_stmt:
+				m_Registers.is_stmt = !m_Registers.is_stmt;
+				break;
+
+			case DW_LNS_set_basic_block:
+				m_Registers.basic_block_start = true;
+				break;
+
+			case DW_LNS_const_add_pc:
+				m_Registers.address += (255 - m_Table->m_OpcodeBase) / m_Table->m_LineRange;
+				break;
+
+			case DW_LNS_fixed_advance_pc:
+				m_Registers.address += cur.u16();
+				break;
+
+			case DW_LNS_set_prologue_end:
+				m_Registers.prologue_end = true;
+				break;
+
+			case DW_LNS_set_epilogue_begin:
+				m_Registers.epilogue_begin = true;
+				break;
+
+			case DW_LNS_set_isa:
+				break;
+
+			default:
+				error::send("Unexpected standard opcode");
+		}
 	}
 
 	m_Pos = cur.position();
