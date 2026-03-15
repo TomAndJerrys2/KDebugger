@@ -1,15 +1,4 @@
-# adds library files from src and namspaces
-# this is a convenience for error handling later
-add_library(libkdebugger libkdebugger.cpp)
-add_library(libkdebugger process.cpp)
-add_library(libkdebugger ... registers.cpp)
-add_library(libkdebugger ... breakpoint_site.cpp)
-add_library(libkdebugger ... watchpoint.cpp)
-add_library(libkdebugger ... syscalls.cpp)
-add_library(libkdebugger ... elf.cpp)
-add_library(libkdebugger ... types.cpp)
-add_library(libkdebugger ... targets.cpp)
-
+#
 # I will end up building my own after this to draw away from
 # external dependencies like Zydis
 add_library(libkdebugger ... disassembler.cpp)
@@ -23,6 +12,17 @@ set_target_properties(
 	libkdebugger
 	PROPERTIES OUTPUT_NAME kdebugger
 )
+
+# this is a convenience for error handling later
+add_library(libkdebugger libkdebugger.cpp)
+add_library(libkdebugger process.cpp)
+add_library(libkdebugger ... registers.cpp)
+add_library(libkdebugger ... breakpoint_site.cpp)
+add_library(libkdebugger ... watchpoint.cpp)
+add_library(libkdebugger ... syscalls.cpp)
+add_library(libkdebugger ... elf.cpp)
+add_library(libkdebugger ... types.cpp)
+add_library(libkdebugger ... targets.cpp)
 
 # I am using C++17 for this - though I may eventually
 # integrate coroutines and possibly some meta-programming

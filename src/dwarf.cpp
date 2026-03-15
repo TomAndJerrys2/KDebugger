@@ -741,3 +741,24 @@ kdebugger::line_table::iterator & kdebugger::line_table::iterator::operator ++ (
 	m_Current.file_entry = &m_Table->m_FileNames[m_Current.file_index - 1];
 	return *this;
 }
+
+kdebugger::line_table::iterator kdebugger::line_table::iterator::operator ++ (int) {
+	auto tmp = *this;
+	++(*this);
+
+	return tmp;
+}
+
+bool kdebugger::line_table::iterator::execute_instruction() {
+	auto elf = m_Table->m_Cu->dwarf_info()->elf_file();
+	cursor cur({m_Pos, m_Table->m_Data.end()});
+	auto opcode = cur.u8();
+	bool emitted = false;
+
+	if(opcode > 0 && opcode < m_Table->m_OpcodeBase) {
+		// handle standard opcodes
+	}
+
+	m_Pos = cur.position();
+	return emitted;
+}
