@@ -37,6 +37,8 @@ kdebugger::elf::elf(const std::filesystem::path & path) {
 	build_section_map();
 	parse_symbol_table();
 	build_symbol_maps();
+
+	m_Dwarf = std::make_unique<dwarf>(*this);
 }
 
 void kdebugger::elf::parse_section_headers() {

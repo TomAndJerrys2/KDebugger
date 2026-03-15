@@ -24,6 +24,8 @@ namespace kdebugger {
 			std::vector<std::unique_ptr<compile_unit>> m_CompileUnits
 			std::unordered_map<std::size_t, std::unordered_map<std::uint64_t, abbrev>> m_AbbrevTables;
 
+			std::unique_ptr<dwarf> m_Dwarf;
+
 			void index() const;
 			void index_die(const die & current) const;
 
