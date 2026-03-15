@@ -18,3 +18,7 @@ add_test_cpp_target(anti_debugger)
 
 add_test_asm_target(reg_write)
 add_test_asm_target(reg_read)
+
+add_executable(multi_cu multi_cu_main.cpp multi_cu_other.cpp)
+target_compile_options(multi_cu PRIVATE -g -0o -pie -gdwarf-4)
+add_dependencies(tests multi_cu)
