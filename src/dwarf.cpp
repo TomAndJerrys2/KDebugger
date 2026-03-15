@@ -807,6 +807,39 @@ bool kdebugger::line_table::iterator::execute_instruction() {
 		}
 	}
 
+	else if(opcode == 0) {
+		auto length = cur.uleb128();
+		auto extended_opcode = cur.u8();
+
+		switch(extended_opcode) {
+			case DW_LNE_end_sequence:
+				m_Registers.end_sequence = true;
+				m_Current = m_Registers;
+				m_Registers = entry {};
+				m_Registers.is_stmt = m_Table->m_DefaultIsStmt;
+				emitted = true;
+				break;
+
+			case DW_LINE_set_address:
+				m_Registers.address = file_addr(*elf, cur.u64());
+				break;
+
+			case DW_LNE_define_file: {
+				auto compilation_dir = m_Table->m_Cu->root()[DW_AT_comp_dir].as_string();
+				auto file = parse_line_table_file(cur, std::string(compilation_dir), m_Table->m_IncludeDirectories);
+				m_Table->m_FileNames.push_back(file);
+				break;
+
+			case DW_LNE_set_discriminator:
+				m_Registers.discriminator = cur.uleb128();
+				break;
+
+			default:
+				error::send("Unexpected extended opcode");
+			}
+		}
+	}
+
 	m_Pos = cur.position();
 	return emitted;
 }
