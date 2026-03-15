@@ -584,3 +584,22 @@ TEST_CASE("Iterate DWARF", "[dwarf]") {
 
 	REQUIRE(count > 0);
 }
+
+TEST_CASE("Find main", "[dwarf]") {
+	auto path = "targets/multi_cu";
+	kdebugger::elf elf(path);
+	kdebugger::dwarf dwarf(elf);
+
+	bool found = false;
+	for(auto & cu : dwarf.compile_units()) {
+		for(auto & die : cu->root().children()) {
+			if(die.abbrev_entry()->tag == DW_TAG_subprogram 
+					&& die.contains(DW_AT_name)) {
+				auto name = die[DW_AT_NAME].as_string();
+
+				if(name == "main")
+					found = true;
+			}
+		}
+	}
+}
