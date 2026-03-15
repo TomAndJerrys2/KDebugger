@@ -162,6 +162,9 @@ namespace kdebugger {
 				return m_FileNames;
 			}
 
+			line_table(const line_table &) = delete;
+			line_table & operator = (const line_table &) = delete;
+
 		private:
 			kdebugger::span<const std::byte> m_Data;
 			const compile_unit * m_Cu;
