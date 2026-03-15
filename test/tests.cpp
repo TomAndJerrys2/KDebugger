@@ -10,6 +10,7 @@
 #include <libkdebugger/pipe.hpp>
 #include <libkdebugger/bit.hpp>
 #include <libkdebugger/syscalls.hpp>
+#include <libkdebugger/dwarf.hpp>
 
 using namespace kdebugger;
 
@@ -563,4 +564,23 @@ TEST_CASE("Correct DWARF language", "[dwarf]") {
 	auto lang = cu->root()[DW_AT_language].as_int();
 
 	REQUIRE(lang = DW_LANG_C_plus_plus);
+}
+
+TEST_CASE("Iterate DWARF", "[dwarf]") {
+	auto path = "targets/hell_sdb";
+	kdebugger::elf elf(path);
+	auto & compile_units = elf.get_dwarf().compile_units();
+
+	REQUIRE(compile_units.size() == 1);
+
+	auto & cu = compile_units[0];
+	std::size_t count = 0;
+
+	for(auto & d : cu->root().children()) {
+		auto a = d.abbrev_entry();
+		REQUIRE(a->code != 0);
+		++count;
+	}
+
+	REQUIRE(count > 0);
 }
