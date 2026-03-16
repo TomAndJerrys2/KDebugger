@@ -39,5 +39,7 @@ namespace kdebugger {
 			const elf & get_elf() const {
 				return *m_Elf;
 			}
+
+			void notify_stop(const kdebugger::stop_reason & reason);
 	};
 }

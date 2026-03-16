@@ -17,7 +17,9 @@ namespace {
 		auto proc = process::launch(path, true, stdout_replacement);
 		auto obj = create_loaded_elf(*proc, path);
 
-		return std::unique_ptr<target>(new target(std::move(proc), std::move(obj)));
+		auto tgt = std::unique_ptr<target>(new target(std::move(proc), std::move(obj)));
+		tgt->get_process().set_target(tgt.get());
+		return tgt;
 	}
 
 	std::unique_ptr<kdebugger::target> kdebugger::target::attach(pid_t pid) {

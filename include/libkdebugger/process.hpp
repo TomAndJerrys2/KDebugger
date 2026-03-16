@@ -107,7 +107,7 @@ namespace kdebugger {
 			bool m_Terminate {true};
 			bool m_Attached {true};
 			process_state m_State {process_state::stopped};
-	
+
             bool expecting_syscall_exit {false};
 
 			void read_all_registers() const;
@@ -139,6 +139,9 @@ namespace kdebugger {
             kdebugger::stop_reason mabye_resume_from_syscall(const stop_reason & reason);
 
             syscall_catch_policy m_SyscallCatchPolicy = syscall_catch_policy::catch_none();
+
+            // target for inline stack tracking
+            target * m_Target = nullptr;
 
 		public:
 
@@ -248,6 +251,10 @@ namespace kdebugger {
             // sets the syscall catch policy
             void set_syscall_catch_policy(syscall_catch_policy info) {
                 m_SyscallCatchPolicy = std::move(info);
+            }
+
+            void set_target(target * tgt) {
+                m_Target = tgt;
             }
 
 			~process();
