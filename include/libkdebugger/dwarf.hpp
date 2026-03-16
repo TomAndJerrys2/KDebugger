@@ -66,6 +66,8 @@ namespace kdebugger {
 
 				return cu->lines().get_entry_by_address(address);
 			}
+	
+			std::vector<die> inline_stack_at_address(file_address) const;
 	};
 
 	class cursor {

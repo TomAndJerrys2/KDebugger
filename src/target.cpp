@@ -27,6 +27,8 @@ namespace {
 		auto proc = process::attach(pid);
 		auto obj = create_loaded_elf(*proc, elf_path);
 
-		return std::unique_ptr<target>(new target(std::move(proc), std::move(obj)));
+		auto tgt = std::unique_ptr<target>(new target(std::move(proc), std::move(obj)));
+		tgt->get_process().set_target(tgt.get());
+		return tgt; 
 	} 
 }
