@@ -894,3 +894,27 @@ std::vector<kdebugger::line_table::iterator> kdebugger::line_table::get_entries_
 
 	return entries;
 }
+
+kdebugger::source_location kdebugger::die::location() const {
+	return {&file(), line()};
+}
+
+const kdebugger::line_table::file & kdebugger::die::file() const {
+	std::uint64_t idx;
+	if(m_Abbrev->tag == DW_TAG_inlined_subroutine) {
+		idx = (*this)[DW_AT_call_file].as_int();
+	}
+
+	else {
+		idx = (*this)[DW_AT_decl_file].as_int();
+	}
+
+	return this->m_Cu->lines().file_names[idx - 1];
+}
+
+std::uint64_t kdebugger::die::line() {
+	if(m_Abbrev->tag == DW_TAG_inlined_subroutine)
+		return (*this)[DW_AT_call_line].as_int();
+
+	return (*this)[DW_AT_decl_line].as_int();
+}
