@@ -58,6 +58,14 @@ namespace kdebugger {
 			std::optional<die> function_containing_address(file_addr address) const;
 
 			std::vector<die> find_functions(std::string name) const;
+
+			line_table::iterator line_entry_at_address(file_addr address) const {
+				auto cu = compile_unit_containing_address(address);
+				if(!cu)
+					return {};
+
+				return cu->lines().get_entry_by_address(address);
+			}
 	};
 
 	class cursor {
