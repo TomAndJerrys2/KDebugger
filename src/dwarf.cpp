@@ -881,3 +881,16 @@ bool path_ends_in(const std::filesystem::path & lhs, const std::filesystem::path
 	auto start = std::next(lhs.begin(), lhs_size - rhs_size);
 	return std::equal(start, lhs.end(), rhs.begin());
 }
+
+std::vector<kdebugger::line_table::iterator> kdebugger::line_table::get_entries_by_line(std::filesystem::path path, std::size_t size) const {
+	std::vector<iterator> entries;
+
+	for(auto it = begin(); it != end(); ++it) {
+		auto & entry_path = it->file_entry->path;
+		
+		if((path.is_absolute() && entry_path == path) || (path.is_relative() && path_ends_in(entry_path, path)))
+			entries.push_back(it);
+	}
+
+	return entries;
+}
