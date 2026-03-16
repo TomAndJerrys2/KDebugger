@@ -537,6 +537,7 @@ TEST_CASE("Syscall catchpoints work", "[catchpoint]") {
 	close(dev_null);
 }
 
+// in case - testing the elf parser I wrote works!
 TEST_CASE("ELF Parser works", "[elf]") {
 	auto path = "targets/hello_sdb";
 	kdebugger::elf elf(path);
@@ -553,6 +554,8 @@ TEST_CASE("ELF Parser works", "[elf]") {
 	REQUIRE(name == "_start");
 }
 
+// in case - testing the syntax of DWARF is recognised
+// by my interpreter impl
 TEST_CASE("Correct DWARF language", "[dwarf]") {
 	auto path = "targets/hello_kdebugger";
 	kdebugger::elf elf(path);
@@ -566,6 +569,7 @@ TEST_CASE("Correct DWARF language", "[dwarf]") {
 	REQUIRE(lang = DW_LANG_C_plus_plus);
 }
 
+// in case - able to iterate through dwarf debug info
 TEST_CASE("Iterate DWARF", "[dwarf]") {
 	auto path = "targets/hello_kdebugger";
 	kdebugger::elf elf(path);
@@ -585,6 +589,8 @@ TEST_CASE("Iterate DWARF", "[dwarf]") {
 	REQUIRE(count > 0);
 }
 
+// in case - is able to find an entry-point function
+// in a single/linked compile unit
 TEST_CASE("Find main", "[dwarf]") {
 	auto path = "targets/multi_cu";
 	kdebugger::elf elf(path);
@@ -604,6 +610,7 @@ TEST_CASE("Find main", "[dwarf]") {
 	}
 }
 
+// in case - range list can be iterated over
 TEST_CASE("Range list", "[dwarf]") {
 	auto path = "targets/hello_kdebugger";
 	kdebugger::elf elf(path);
@@ -643,4 +650,32 @@ TEST_CASE("Range list", "[dwarf]") {
 	REQUIRE(list.contains(file_addr {elf, 0x12341266}));
 	REQUIRE(list.contains(file_addr {elf, 0x12341267}));
 	REQUIRE(!list.contains(file_addr {elf, 0x12341268}));
+}
+
+// in case -check the main dwarf parser indeed functions 
+// as expected via the DWARF4 std
+TEST_CASE("Line table", "[dwarf]") {
+	auto path = "targets/hello_kdebugger";
+	kdebugger::elf elf(path);
+	kdebugger::dwarf dwarf(elf);
+
+	REQUIRE(dwarf.compile_units().size() == 1);
+
+	auto & cu = dwarf.compile_units()[0];
+	auto it = cu->lines().begin();
+
+	REQUIRE(it->line == 2);
+	REQUIRE(it->file_entry->path.filename() == "hello_kdebugger.cpp");
+
+	++it;
+	REQUIRE(it->line == 3);
+
+	++it;
+	REQUIRE(it->line == 4);
+
+	++it;
+	REQUIRE(it->end_sequence);
+
+	++it;
+	REQUIRE(it == cu->lines().end());
 }
