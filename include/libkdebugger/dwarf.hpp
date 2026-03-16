@@ -171,6 +171,9 @@ namespace kdebugger {
 			iterator begin() const;
 			iterator end() const;
 
+			iterator get_entry_by_address(file_addr address) const;
+			std::vector<iterator> get_entries_by_line(std::filesystem::path path, std::size_t line) const;
+
 		private:
 			kdebugger::span<const std::byte> m_Data;
 			const compile_unit * m_Cu;
@@ -265,7 +268,12 @@ namespace kdebugger {
 	// compile unit class for parsing dwarf compile unit headers
 	// i.e .debug_info section
 	class dwarf;
-	
+
+	struct source_location {
+		const line_table::file* file;
+		std::uint64_t line;
+	};
+
 	// debugging information entry structures are represented like trees
 	class die {
 		
@@ -311,6 +319,10 @@ namespace kdebugger {
 			bool contains_address(file_addr address) const;
 	
 			std::optional<std::string_view> name() const;
+	
+			source_location location() const;
+			const line_table::file & file() const;
+			std::uint64_t line() const;
 	}
 
 	class die::children_range {
