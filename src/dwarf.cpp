@@ -918,3 +918,28 @@ std::uint64_t kdebugger::die::line() {
 
 	return (*this)[DW_AT_decl_line].as_int();
 }
+
+std::vector<kdebugger::die> kdebugger::dwarf::inline_stack_at_address(file_addr address) const {
+	auto func = function_containing_address(address);
+	std::vector<kdebugger::die> stack;
+
+	if(func) {
+		stack.push_back(*func);
+
+		while(true) {
+			const auto & children = stack.back().children();
+			auto found = std::find_if(children.begin(), children.end(), [=] {
+				return (child.abbrev_entry()->tag == DW_TAG_inline_subroutine 
+					&& child.contains_address(address));
+			});
+
+			if(found == children.end())
+				break;
+			else
+				stack.push_back(*found);
+
+		}
+	}
+
+	return stack;
+}
