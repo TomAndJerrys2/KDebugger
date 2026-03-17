@@ -6,6 +6,7 @@
 // Project specific / private headers
 #include <libkdebugger/elf.hpp>
 #include <libkdebugger/process.hpp>
+#include <libkdebugger/stack.hpp>
 
 namespace kdebugger {
 	class target {
@@ -13,8 +14,10 @@ namespace kdebugger {
 		private:
 			std::unique_ptr<process> m_Process;
 			std::unique_ptr<process> m_Elf;
+			stack m_Stack;
 
-			target(std::unique_ptr<process> proc, std::unique_ptr<elf> obj) : m_Process {proc}, m_Elf {obj};
+			target(std::unique_ptr<process> proc, std::unique_ptr<elf> obj) 
+				: m_Process {std::move(proc)}, m_Elf {std::move(obj)}, m_Stack{this} {}
 
 		public:
 			target() = delete;
@@ -43,5 +46,13 @@ namespace kdebugger {
 			void notify_stop(const kdebugger::stop_reason & reason);
 	
 			file_addr get_pc_file_address() const;
+	
+			stack & get_stack() {
+				return m_Stack;
+			}
+
+			const stack & get_stack() const {
+				return m_Stack;
+			}
 	};
 }
