@@ -1,3 +1,5 @@
+#include <csignal>
+
 #include <libkdebugger/target.hpp>
 #include <libkdebugger/types.hpp>
 
@@ -38,5 +40,13 @@ namespace {
 
 	void kdebugger::target::notify_stop(const kdebugger::stop_reason & reason) {
 		m_Stack.reset_inline_height();
+	}
+
+	kdebugger::stop_reason kdebugger::target::step_in() {
+		auto & stack = get_stack();
+		if(stack.inline_height() > 0) {
+			stack.simulate_inlined_step_in();
+			return stop_reason(process_state::stopped, SIGTRAP, trap_type::single_step);
+		}
 	}
 }

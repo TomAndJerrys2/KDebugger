@@ -54,5 +54,9 @@ namespace kdebugger {
 			const stack & get_stack() const {
 				return m_Stack;
 			}
+	
+			kdebugger::stop_reason step_in();
+			kdebugger::stop_reason step_out();
+			kdebugger::stop_reason step_over();
 	};
 }

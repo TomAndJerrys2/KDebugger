@@ -27,5 +27,9 @@ namespace kdebugger {
 			const target & get_target() const {
 				return *m_Target;
 			}
+			
+			void simulate_inlined_step_in() {
+				--m_InlineHeight;
+			}
 	}
 }
