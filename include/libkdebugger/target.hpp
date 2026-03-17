@@ -41,5 +41,7 @@ namespace kdebugger {
 			}
 
 			void notify_stop(const kdebugger::stop_reason & reason);
+	
+			file_addr get_pc_file_address() const;
 	};
 }

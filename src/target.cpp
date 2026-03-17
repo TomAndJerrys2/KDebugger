@@ -31,4 +31,8 @@ namespace {
 		tgt->get_process().set_target(tgt.get());
 		return tgt; 
 	} 
+
+	kdebugger::file_addr kdebugger::target::get_pc_file_address() const {
+		return m_Process->get_pc().to_file_addr(*m_Elf);
+	}
 }
