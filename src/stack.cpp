@@ -9,3 +9,12 @@ std::vector<kdebugger::die> kdebugger::stack::inline_stack_at_pc() const {
 
 	return pc.elf_file().get_dwarf().inline_stack_at_address(pc);
 }
+
+void kdebugger::stack::reset_inline_height() {
+	auto stack = inline_stack_at_pc();
+	m_InlineHeight = 0;
+
+	auto pc = m_Target->get_pc_file_address();
+	for(auto it = stack.rbegin(); it != stack.rend() && it->low_pc == pc; ++it)
+		++m_InlineHeight;
+}
