@@ -35,4 +35,8 @@ namespace {
 	kdebugger::file_addr kdebugger::target::get_pc_file_address() const {
 		return m_Process->get_pc().to_file_addr(*m_Elf);
 	}
+
+	void kdebugger::target::notify_stop(const kdebugger::stop_reason & reason) {
+		m_Stack.reset_inline_height();
+	}
 }
