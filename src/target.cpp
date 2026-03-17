@@ -48,5 +48,33 @@ namespace {
 			stack.simulate_inlined_step_in();
 			return stop_reason(process_state::stopped, SIGTRAP, trap_type::single_step);
 		}
+
+		auto orig_line = line_entry_at_pc();
+
+		do {
+			auto reason = m_Process->step_instruction();
+			if(reason.reason != process_state::stopped || reason.info != SIGTRAP 
+					|| reason.trap_reason != trap_type::single_step)
+				return reason;
+		} 
+		while((line_entry_at_pc() == orig_line || line_entry_at_pc()->end_sequence)
+				&& line_entry_at_pc() != line_table::iterator {});
+
+		auto pc = get_pc_file_address();
+		if(pc.elf_file() != nullptr) {
+			auto & dwarf = pc.elf_file()->get_dwarf();
+			auto func = dwarf.function_containing_address(pc);
+
+			if(func && func->low_pc() == pc) {
+				auto line = line_entry_at_pc();
+
+				if(line != line_table::iterator {}) {
+					++line;
+					return run_until_address(line->address.to_virt_addr());
+				}
+			}
+		}
+
+		return stop_reason(process_state::stopped, SIGTRAP, trap_type::single_step);
 	}
 }
