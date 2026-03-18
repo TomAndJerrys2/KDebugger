@@ -7,6 +7,7 @@
 #include <optional>
 #include <vector>
 #include <unordered_map>
+#include <csignal>
 
 // Private / project specific headers
 #include <libkdebugger/registers.hpp>
@@ -92,7 +93,21 @@ namespace kdebugger {
 
 	struct stop_reason {
 		
-		stop_reason(int wait_status);
+		stop_reason() = default;
+        stop_reason(process_state reason, std::uint8_t info, std::optional<trap_type> trap_reason = std::nullopt,
+                std::optional<syscall_information> syscall_info = std::nullopt) : reason {reason}, info {info}, 
+                    trap_reason {trap_reason}, syscall_info {syscall_info} {}
+
+        bool is_step() const {
+            return reason == process_state::stopped && info == SIGTRAP
+                && trap_reason == trap_type::single_step;
+        }
+
+        bool is_breakpoint() const {
+            return reason == process_state::stopped &&
+                info == SIGTRAP && (trap_reason == trap_type::software_break
+                        || trap_reason == trap_type::hardware_break);
+        }
 
         std::uint8_t info;
 		process_state reason;
