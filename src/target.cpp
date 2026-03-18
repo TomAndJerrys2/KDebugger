@@ -88,4 +88,25 @@ namespace {
 
 		return cu->line().get_entry_by_address(pc);
 	}
+
+	kdebugger::stop_reason kdebugger::target::run_until_address(virt_addr address) {
+		breakpoint_site* breakpoint_to_remove = nullptr;
+		if(!m_Process->breakpoint_sites().contains_address(address)) {
+			breakpoint_to_remove = &m_Process->create_breakpoint_site(address, false, true);
+			breakpoint_to_remove->enable();
+		}
+	
+
+		m_Process->resume();
+		auto reason = m_Process->wait_on_signal();
+		if(reason.is_breakpoint() && m_Process->get_pc() == address) {
+			reason.trap_reason = trap_type::single_step;
+		}
+
+		if(breakpoint_to_remove) {
+			m_Process->breakpoint_sites().remove_by_address(breakpoint_to_remove->address());
+		}
+
+		return reason;
+	}
 }
