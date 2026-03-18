@@ -58,5 +58,8 @@ namespace kdebugger {
 			kdebugger::stop_reason step_in();
 			kdebugger::stop_reason step_out();
 			kdebugger::stop_reason step_over();
-	};
+	
+			kdebugger::line_table::iterator line_entry_at_pc() const;
+			kdebugger::stop_reason run_until_address(virt_addr address);
+		};
 }
