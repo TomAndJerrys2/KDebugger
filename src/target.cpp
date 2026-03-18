@@ -53,8 +53,7 @@ namespace {
 
 		do {
 			auto reason = m_Process->step_instruction();
-			if(reason.reason != process_state::stopped || reason.info != SIGTRAP 
-					|| reason.trap_reason != trap_type::single_step)
+			if(!reason.is_step())
 				return reason;
 		} 
 		while((line_entry_at_pc() == orig_line || line_entry_at_pc()->end_sequence)
