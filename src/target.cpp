@@ -76,4 +76,16 @@ namespace {
 
 		return stop_reason(process_state::stopped, SIGTRAP, trap_type::single_step);
 	}
+
+	kdebugger::line_table::iterator kdebugger::target::line_entry_at_pc() const {
+		auto pc = get_pc_file_address();
+		if(!pc.elf_file())
+			return line_table::iterator();
+
+		auto cu = pc.elf_file()->get_dwarf().compile_unit_containing_address(pc);
+		if(!cu)
+			return line_table::iterator();
+
+		return cu->line().get_entry_by_address(pc);
+	}
 }
