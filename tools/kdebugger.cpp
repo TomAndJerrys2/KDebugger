@@ -817,6 +817,26 @@ namespace {
             handle_catchpoint_command(*process, args);
         }
 
+        else if(is_prefix(command, "next")) {
+            auto reason = target->step_over();
+            handle_stop(*target, reason);
+        }
+
+        else if(is_prefix(command, "finish")) {
+            auto reason = target->step_out();
+            handle_stop(*target, reason);
+        }
+
+        else if(is_prefix(command, "step")) {
+            auto reason = target->step_in();
+            handle_stop(*target, reason);
+        }
+
+        else if(is_prefix(command, "stepi")) {
+            auto reason = process->step_instruction();
+            handle_stop(*target, reason);
+        }
+
 		else {
 			std::cerr << "> Unknown Command entered.\n";
 		}
