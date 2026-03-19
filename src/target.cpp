@@ -1,7 +1,9 @@
 #include <csignal>
+#include <optional>
 
 #include <libkdebugger/target.hpp>
 #include <libkdebugger/types.hpp>
+#include <libkdebugger/disassembler.hpp>
 
 namespace {
 
@@ -106,6 +108,21 @@ namespace {
 		if(breakpoint_to_remove) {
 			m_Process->breakpoint_sites().remove_by_address(breakpoint_to_remove->address());
 		}
+
+		return reason;
+	}
+
+	kdebugger::stop_reason kdebugger::target::step_over() {
+		auto orig_line = line_entry_at_pc();
+		disassembler disas(*m_Process);
+		kdebugger::stop_reason reason;
+
+		auto & stack = get_stack();
+		do {
+			// will do in a min
+		}
+		while((line_entry_at_pc() == orig_line || line_entry_at_pc()->end_sequence) &&
+					line_entry_at_pc() != line_table::iterator {});
 
 		return reason;
 	}
