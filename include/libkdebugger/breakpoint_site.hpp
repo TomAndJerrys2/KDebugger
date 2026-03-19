@@ -14,7 +14,7 @@ namespace kdebugger {
 	class breakpoint_site {
 		
 		private:
-			breakpoint_site(process & proc, virt_addr address. 
+			breakpoint_site(breakpoint * parent, id_type id, process & proc, virt_addr address. 
 						bool is_hardware = false, bool is_internal = false);
 			friend process;
 
@@ -28,6 +28,8 @@ namespace kdebugger {
 			bool m_isInternal;			
 
 			std::byte m_SavedData;
+
+			breakpoint * m_Parent {nullptr};
 
 		public:
 			// delete default constructor
