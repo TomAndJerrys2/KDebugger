@@ -406,6 +406,9 @@ namespace {
 				step 	    - steps over a single instruction
                 watchpoint  - commands for operating on watchpoints
                 catchpoint  - commands for operating on catchpoints
+                next        - step over command
+                step        - step in command
+                stepi       - single instruction step command
             )";
 		}
 
@@ -458,7 +461,7 @@ namespace {
                 syscall <list of names or IDs>
             )";
         }
-    
+
 		else {
 			std::cerr << "No help available!\n";
 		}
