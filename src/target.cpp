@@ -4,6 +4,7 @@
 #include <libkdebugger/target.hpp>
 #include <libkdebugger/types.hpp>
 #include <libkdebugger/disassembler.hpp>
+#include <libkdebugger/bit.hpp>
 
 namespace {
 
@@ -148,5 +149,25 @@ namespace {
 					line_entry_at_pc() != line_table::iterator {});
 
 		return reason;
+	}
+
+	kdebugger::stop_reason kdebugger::target::step_out() {
+		auto & stack = get_stack();
+		auto inline_stack = stack.inline_stack_at_pc();
+		auto has_inline_frames = inline_stack.size() > 1;
+		auto at_inline_frame = stack.inline_height() < inline_stack.size() - 1;
+
+		if(has_inline_frames && at_inline_frame) {
+			auto current_frame = inline_stack[inline_stack.size() - stack.inline_height() - 1];
+			auto return_address = current_frame.high_pc().to_virt_addr();
+
+			return run_until_address(return_address);
+		}
+
+		auto frame_pointer = m_Process->get_registers().read_by_id_as<std::uint64_t>(register_id::rbp);
+
+		auto return_address = m_Process->read_memory_as<std::uint64_t>(virt_addr {frame_pointer + 8});
+
+		return run_until_address(virt_addr {return_address});
 	}
 }
