@@ -119,7 +119,30 @@ namespace {
 
 		auto & stack = get_stack();
 		do {
-			// will do in a min
+			auto inline_stack = stack.inline_stack_at_pc();
+			auto at_start_of_inline_form = stack.inline_height() > 0;
+
+			if(at_stack_of_inline_frame) {
+				auto frame_to_skip = inline_skip[inline_stack.size() - stack.inline_height()];
+				auto return_address = frame_to_skip.high_pc().to_virt_addr();
+				reason = run_until_address(return_address);
+
+				if(!reason.is_step() || m_Process->get_pc() != return_address)
+					return reason;
+			}
+
+			else if(auto instructions = disas.disassemble(2, m_Process->get_pc()); instructions[0].text.rfind("call") == 0) {
+				reason = run_until_address(instructions[1].address);
+
+				if(!reason.is_step() || m_Process->get_pc() != instructions[1].address)
+					return reason;
+			}
+
+			else {
+				reason = m_Process->step_instruction();
+				if(!reason.is_step())
+					return reason;
+			}
 		}
 		while((line_entry_at_pc() == orig_line || line_entry_at_pc()->end_sequence) &&
 					line_entry_at_pc() != line_table::iterator {});
