@@ -574,3 +574,15 @@ std::unordered_map<int, std::uint64_t> kdebugger::process::get_auxv() const {
 
     return ret;
 }
+
+// overloaded function
+kdebugger::breakpoint_site & kdebugger::process::create_breakpoint_site(breakpoint * parent, breakpoint_site::id_type id, 
+        virt_addr address, bool hardware, bool internal) {
+    if(m_BreakPointSites.contains_address(address)) {
+        error::send("Breakpoint site already created at address " + std:::to_string(address.addr()));
+    }
+
+    return m_BreakPointSites.push(std::unique_ptr<breakpoint_site> (new breakpoint_site(parent, id, *this, address, hardware, internal)));
+}
+
+
