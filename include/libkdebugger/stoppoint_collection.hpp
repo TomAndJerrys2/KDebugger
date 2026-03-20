@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
+#include <type_traits>
 
 // Private / project-specific headers
 #include <libkdebugger/types.hpp>
@@ -11,12 +12,12 @@
 
 namespace kdebugger {
 
-	template <class Stoppoint>
+	template <class Stoppoint, bool Owning = true>
 	class stoppoint_collection {
 		
 		private:
-			using points_t = std::vector<std::unique_ptr<Stoppoint>>;
-			
+			using points_t = std::vector<pointer_type>;
+
 			// find by ID or address as iterator types
 			typename points_t::iterator find_by_id(typename Stoppoint::id_type id);
 			typename points_t::const_iterator find_by_id(typename Stoppoint::id_type id) const;
@@ -27,7 +28,11 @@ namespace kdebugger {
 			points_t m_Stoppoints;
 
 		public:
-			Stoppoint & push(std::unique_ptr<Stoppoint> bs);
+
+			using pointer_type = std::conditional_t<Owning, std::unique_ptr<Stoppoint>,
+				  Stoppoint *>;
+
+			Stoppoint & push(pointer_type bs);
 
 			// checks if the collection contains a stop point either
 			// matching a given Id or a virtual address
