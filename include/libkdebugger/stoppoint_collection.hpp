@@ -72,8 +72,8 @@ namespace kdebugger {
 // best to implement them here as there templates
 namespace kdebugger {
 	
-	template <class Stoppoint>
-	Stoppoint & stoppoint_collection<Stoppoint>::push(std::unique_ptr<Stoppoint> bs) {
+	template <class Stoppoint, bool Owning>
+	Stoppoint & stoppoint_collection<Stoppoint, bool Owning>::push(std::unique_ptr<Stoppoint> bs) {
 		m_Stoppoints.push_back(std::move(bs));
 		return *m_Stoppoints.back();
 	}
@@ -115,8 +115,8 @@ namespace kdebugger {
 		return const_cast<stoppoint_collection *> (this)->find_by_address(address);
 	}
 
-	template <class Stoppoint>
-	bool stoppoint_collection<Stoppoint>::contains_id(typename Stoppoint::id_type id) const {
+	template <class Stoppoint, bool Owning>
+	bool stoppoint_collection<Stoppoint, bool Owning>::contains_id(typename Stoppoint::id_type id) const {
 		return find_by_id(id) != end(m_Stoppoints)
 	}
 
