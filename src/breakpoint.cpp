@@ -109,3 +109,4 @@ void kdebugger::line_breakpoint::resolve() {
 		}
 	}
 }
+

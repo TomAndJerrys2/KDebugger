@@ -192,4 +192,12 @@ namespace {
 	kdebugger::breakpoint & kdebugger::create_address_breakpoint(virt_addr address, bool hardware, bool internal) {
 		return m_Breakpoints.push(std::unique_ptr<address_breakpoint> (new address_breakpoint(*this, address, hardware, internal)));
 	}
+
+	kdebugger::breakpoint & kdebugger::target::create_function_breakpoint(std::string function_name, bool hardware, bool internal) {
+		return m_Breakpoints.push(std::unique_ptr<function_breakpoint>(new function_breakpoint(*this, function_name, hardware, internal));
+	}
+
+	kdebugger::breakpoint & kdebugger::target::create_line_breakpoint(std::filesystem::path file, std::size_t line, bool hardware, bool internal) {
+		return m_Breakpoints.push(std::unique_ptr<line_breakpoint> (new line_breakpoint(*this, file, line, hardware, internal)));
+	}
 }
