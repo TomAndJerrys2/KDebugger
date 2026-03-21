@@ -16,6 +16,8 @@ namespace kdebugger {
 			std::unique_ptr<process> m_Elf;
 			stack m_Stack;
 
+			stoppoint_collection<breakpoint> m_Breakpoints();
+
 			target(std::unique_ptr<process> proc, std::unique_ptr<elf> obj) 
 				: m_Process {std::move(proc)}, m_Elf {std::move(obj)}, m_Stack{this} {}
 
@@ -63,6 +65,14 @@ namespace kdebugger {
 			breakpoint & create_address_breakpoint(virt_addr address, bool hardware = false, bool internal = false);
 			breakpoint & created_function_breakpoint(std::string function_name, bool hardware = false, bool internal = false);
 			breakpoint & create_line_breakpoint(std::filesystem::path file, std::size_t line, bool hardware = false, bool internal = false);
+
+			stoppoint_collection<breakpoint> & breakpoints() {
+				return m_Breakpoints;
+			}
+
+			const stoppoint_collection<breakpoint> & breakpoints() const {
+				return m_Breakpoints;
+			}
 
 			find_functions_result find_functions(std::string name) const;
 
