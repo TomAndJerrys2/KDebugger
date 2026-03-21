@@ -60,6 +60,10 @@ namespace kdebugger {
 				std::vector<std::pair<const elf *, const Elf64_Sym *>> elf_functions;
 			};
 
+			breakpoint & create_address_breakpoint(virt_addr address, bool hardware = false, bool internal = false);
+			breakpoint & created_function_breakpoint(std::string function_name, bool hardware = false, bool internal = false);
+			breakpoint & create_line_breakpoint(std::filesystem::path file, std::size_t line, bool hardware = false, bool internal = false);
+
 			find_functions_result find_functions(std::string name) const;
 
 			kdebugger::stop_reason step_in();
