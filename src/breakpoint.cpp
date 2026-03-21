@@ -26,3 +26,14 @@ void kdebugger::breakpoint::disable() {
 		site.disable();
 	});
 }
+
+void kdebugger::address_breakpoint::resolve() {
+	if(m_BreakPointSites.empty()) {
+		auto & new_site = m_Target->get_process()
+			.create_breakpoint_site(this, m_NextSiteId, m_Address, m_IsHardware, m_IsInternal);
+
+		m_BreakPointSites.push(&new_site);
+		if(m_IsEnabled)
+			new_site.enable();
+	}
+}
