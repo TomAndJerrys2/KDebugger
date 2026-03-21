@@ -73,5 +73,21 @@ namespace kdebugger {
 				return m_BreakPointSites.get_in_region(low, high).empty();
 			}
 	};
+
+	class function_breakpoint : public breakpoint {
+		
+		public:
+			void resolve() override;
+			std::string_view function_name() const { return m_FunctionName; }
+	
+		private:
+			friend target;
+			function_breakpoint(target & tgt, std::string function_name, bool is_hardware = false, bool is_internal = false)
+				: breakpoint(tgt, is_hardware, is_internal), m_FunctionName {function_name} {
+				resolve();
+			}
+
+			std::string m_FunctionName;
+	};
 }
 
