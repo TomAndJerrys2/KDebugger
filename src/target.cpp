@@ -170,4 +170,22 @@ namespace {
 
 		return run_until_address(virt_addr {return_address});
 	}
+
+	kdebugger::target::find_functions_result kdebugger::target::find_functions(std::string name) const {
+		find_functions_result result;
+
+		auto dwarf_found = m_Elf->get_dwarf().find_functions(name);
+		if(dwarf_found.empty()) {
+			auto elf_found = m_Elf->get_symbols_by_name(name);
+
+			for(auto sym : elf_found)
+				result.elf_functions.push_back(std::pair {m_Elf.get(), sym});
+		}
+
+		else {
+			result.dwarf_functions.insert(result.dwarf_functions.end(), dwarf_found.begin(), dwarf_found.end());
+		}
+
+		return result;
+	}
 }

@@ -54,7 +54,14 @@ namespace kdebugger {
 			const stack & get_stack() const {
 				return m_Stack;
 			}
-	
+
+			struct find_functions_result {
+				std::vector<die> dwarf_functions;
+				std::vector<std::pair<const elf *, const Elf64_Sym *>> elf_functions;
+			};
+
+			find_functions_result find_functions(std::string name) const;
+
 			kdebugger::stop_reason step_in();
 			kdebugger::stop_reason step_out();
 			kdebugger::stop_reason step_over();
