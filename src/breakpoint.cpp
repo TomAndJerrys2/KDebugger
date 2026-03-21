@@ -37,3 +37,33 @@ void kdebugger::address_breakpoint::resolve() {
 			new_site.enable();
 	}
 }
+
+void kdebugger::function_breakpoint::resolve() {
+	auto found_functions = m_Target->find_functions(m_FunctionName);
+
+	for(auto die : found_functions.dwarf_functions) {
+		if(die.contains(DW_AT_low_pc) || die.contains(DW_AT_ranges)) {
+			file_addr addr;
+
+			if(die.abbrev_entry()->tag == DW_TAG_inlined_subroutine)
+				addr = die.low_pc();
+
+			else {
+				auto function_line = die.cu()->lines().get_entry_by_address(die.low_pc());
+				++function_line;
+				addr = function_line->address;
+			}
+
+			auto load_address = addr.to_virt_addr();
+
+			if(!m_BreakPointSites.contains_address(load_address)) {
+				auto & new_site = m_Target->get_process().create_breakpoint_site(this, next_site_id++, load_address, m_IsHardware, m_IsInternal);
+
+				m_BreakPointSites.push(&new_site);
+
+				if(m_IsEnabled)
+					new_site.enable();
+			}
+		}
+	}
+}
