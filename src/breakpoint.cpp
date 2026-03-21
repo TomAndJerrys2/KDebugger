@@ -65,5 +65,18 @@ void kdebugger::function_breakpoint::resolve() {
 					new_site.enable();
 			}
 		}
+
+		for(auto sym : found_functions.elf_functions) {
+			auto file_address = file_addr {*sym.first, sym.second->st_value};
+			auto load_address = file_address.to_virt_addr();
+
+			if(!m_BreakPointSites.contains_address(load_address)) {
+				auto & new_site = m_Target->get_process().create_breakpoint_site(this, next_site_id++, load_address, m_IsHardware, m_IsInternal);
+				m_BreakPointSites.push(&new_site);
+
+				if(m_IsEnabled)
+					new_site.enable();
+			}	
+		}
 	}
 }
