@@ -1,4 +1,4 @@
-// General Headers
+/: General Headers
 #include <iostream>
 #include <unistd.h>
 #include <string_view>
@@ -27,6 +27,34 @@
 #include <libkdebugger/error.hpp>
 #include <libkdebugger/disassembler.hpp>
 #include <libkdebugger/target.hpp>
+
+void handle_breakpoint_list_command(kdebugger::target & target) {
+    if(target.breakpoints().empty())
+        std::print("No breakpoints set\n");
+    else {
+        std::print("Current breakpoints:\n");
+        target.breakpoints().for_each([] (auto & bp) {
+            if(bp.is_interanl())
+                return;
+
+            std::print("{}: ", bp.id());
+            if(auto func_bp = dynamic_cast<kdebugger::function_breakpoint *> (&bp))
+                std::print("function = {}", func_bp->function_name());
+
+            else if(auto line_bp = dynamic_cast<kdebugger::line_breakpoint *> (&bp))
+                std::print("file = {}, line = {}",  line_bp->file().string(), line_bp->line());
+
+            else if(auto addr_bp = dynamic_cast<kdebugger::address_breakpoint *> (&bp))
+                std::print("address = {:#x}", addr_bp->address().addr());
+
+            std::print(", {}:\n", bp.is_enabled ? "enabled" : "disabled");
+            bp.breakpoints_sites().for_each([&] (auto & site) {
+                std::print("    .{}: address = {:#x}, {}\n", site.id(), site.address(),addr(), 
+                        site.is_enabled() ? "enabled" : "disabled");
+            });
+        });
+    }
+}
 
 namespace {
 	template <typename T>
@@ -608,7 +636,7 @@ namespace {
 // --- Breakpoints ---
 namespace {
 	
-	void handle_breakpoint_command(kdebugger::process & process, 
+	void handle_breakpoint_command(kdebugger::target & target, 
 		const std::vecotr<std::string> & args) {
 		if(args.size() < 2) {
 			print_help({"help", "breakpoint"});
@@ -790,7 +818,7 @@ namespace {
 		}
 
 		else if(is_prefix(command, "breakpoint")) {
-			handle_breakpoint_command(*process, args);
+			handle_breakpoint_command(*target, args);
 		}
 		
 		else if(is_prefix(command, "continue")) {
