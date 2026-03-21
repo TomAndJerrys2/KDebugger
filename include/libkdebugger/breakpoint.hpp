@@ -57,7 +57,21 @@ namespace kdebugger {
 
 			virtual void resolve() const = 0;
 
-			// breakpoint_sites() { return m_BreakPointSites; }
+			stoppoint_collection<breakpoint_site, false> &  breakpoint_sites() { 
+				return m_BreakPointSites; 
+			}
+
+			const stoppoint_collection<breakpoint_site, false> & breakpoint_sites() const {
+				return m_BreakPointSites;
+			}
+
+			bool at_address(virt_addr addr) const {
+				return m_BreakPointSites.contains_address(addr);
+			}
+
+			bool in_range(virt_addr low, virt_addr high) const {
+				return m_BreakPointSites.get_in_region(low, high).empty();
+			}
 	};
 }
 
