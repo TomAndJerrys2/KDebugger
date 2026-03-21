@@ -24,6 +24,7 @@ add_library(libkdebugger ... elf.cpp)
 add_library(libkdebugger ... types.cpp)
 add_library(libkdebugger ... targets.cpp)
 add_library(libkdebugger ... stack.cpp)
+add_library(libkdebugger ... breakpoint.cpp)
 
 # I am using C++17 for this - though I may eventually
 # integrate coroutines and possibly some meta-programming
