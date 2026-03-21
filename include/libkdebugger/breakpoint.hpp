@@ -112,6 +112,25 @@ namespace kdebugger {
 
 			std::filesystem::path m_File;
 			std::size_t m_Line;
-	}
+	};
+
+	class address_breakpoint : public breakpoint {
+	
+		public:
+			void resolve() override;
+
+			virt_addr address() const {
+				return m_Address;
+			}
+
+		private:
+			friend target;
+			address_breakpoint(target & tgt, virt_addr address, bool is_hardware = false, bool is_internal = false)
+				: breakpoint(tgt, is_hardware, is_internal), m_Address {address} {
+				resolve();
+			}
+
+			virt_addr m_Address;
+	};
 }
 
