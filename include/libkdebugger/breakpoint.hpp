@@ -89,5 +89,29 @@ namespace kdebugger {
 
 			std::string m_FunctionName;
 	};
+
+	class line_breakpoint : public breakpoint {
+		
+		public:
+			void resolve() override;
+
+			const std::filesystem::path file() const {
+				return m_File;
+			}
+
+			std::size_t line() const {
+				return m_Line;
+			}
+
+		private:
+			friend target;
+			line_breakpoint(target & tgt, std::filesystem::path file, std::size_t line, bool is_hardware = false, 
+					bool is_internal) : breakpoint(tgt, is_hardware, is_internal), m_File {std::move(file)}, m_Line {line} {
+				resolve();
+			}
+
+			std::filesystem::path m_File;
+			std::size_t m_Line;
+	}
 }
 
