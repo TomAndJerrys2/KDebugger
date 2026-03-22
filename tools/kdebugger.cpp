@@ -397,8 +397,18 @@ namespace {
 	void handle_stop(kdebugger::target & target, kdebugger::stop_reason reason) {
 		print_stop_reason(target, reason);
 		if(reason.reason == kdebugger::process_state::stopped) {
-			print_disassembly(target.get_process(), target.get_process().get_pc(), 5);
-		}
+		    if(target.get_stack().inline_height() > 0) {
+                auto stack = target.get_stack().inline_stack_at_pc();
+                auto frame = stack[stack.size() - target.get_stack().inline_height()];
+                print_source(frame.file().path, frame.line(), 3);
+            }
+
+            else if(auto entry = target.line_entry_at_pc(); entry != kdebugger::line_table::iterator)
+                print_source(entry->file_entry->path, entry->line, 3);
+
+            else
+                print_disassembly(target.get_process(), target.get_process().get_pc(), 5);
+        }
 	}
 	
 	// handles formatting and calling disassembly to the cmdline
