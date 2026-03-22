@@ -858,7 +858,17 @@ namespace {
 		else if(is_prefix(command, "breakpoint")) {
 			handle_breakpoint_command(*target, args);
 		}
-		
+
+        else if(is_prefix(command, "list")) {
+            handle_breakpoint_list_command(target);
+            return;
+        }
+
+        else if(is_prefix(command, "set")) {
+            handle_breakpoint_set_command(target, args);
+            return;
+        }
+
 		else if(is_prefix(command, "continue")) {
 			process->resume();
 			auto reason = process->wait_on_signal();
