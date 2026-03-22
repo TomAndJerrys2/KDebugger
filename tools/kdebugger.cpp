@@ -28,6 +28,44 @@
 #include <libkdebugger/disassembler.hpp>
 #include <libkdebugger/target.hpp>
 
+void handle_breakpoint_set_command(kdebugger::target & target, const std::vector<std::string> & args) {
+    bool hardware = false;
+    if(args.size() == 4) {
+        if(args[3] == "-h")
+            hardware = true;
+        else 
+            kdebugger::error::send("Invalid breakpoint command argument");
+    }
+
+    if(args[2].find("0x") == 0) {
+        auto address = to_integral<std::uint64_t> (args[2], 16);
+
+        if(!address) {
+            std::print(stderr, "Breakpoint command expects a hexidecimal address: 0x\n");
+            return;
+        }
+
+        target.create_address_breakpoint(kdebugger::virt_addr {*address}, hardware).enable();
+    }
+
+    else if(args[2].find(':') != std::string::npos) {
+        auto data = split(args[2], ':');
+        auto path = data[0];
+        auto line = to_integral<std::uint64_t>(data[1]);
+
+        if(!line) {
+            std::print(stderr, "Line number should be an int\n");
+            return;
+        }
+
+        target.create_line_breakpoint(path, *line, hardware).enable();
+    }
+
+    else {
+        target.create_function_breakpoint(args[2]).enable();
+    }
+}
+
 void handle_breakpoint_list_command(kdebugger::target & target) {
     if(target.breakpoints().empty())
         std::print("No breakpoints set\n");
