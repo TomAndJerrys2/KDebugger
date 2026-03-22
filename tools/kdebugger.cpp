@@ -28,6 +28,50 @@
 #include <libkdebugger/disassembler.hpp>
 #include <libkdebugger/target.hpp>
 
+void handle_breakpoint_toggle(kdebugger::target & target, const std::vector<std::string> & args) {
+    auto command = args[1];
+    auto dot_pos = args[2].find('.');
+    auto id_str = args[2].substr(0, dot_pos);
+    auto id = to_integral<kdebugger::breakpoint_site::id_type> (id_str);
+
+    if(!id) {
+        std::println("Command expects breakpoint id");
+        return;
+    }
+
+    auto & bp = target.breakpoints().get_by_id(*id);
+
+    if(dot_pos != std::string::npos) {
+        auto site_id_str = args[2].substr(dot_pos + 1);
+        auto site_id = to_integral<kdebugger::breakpoint_site::id_type> (site_id_str);
+    
+        if(!site_id) {
+            std::println("Command expects breakpoint site id");
+            return;
+        }
+
+        if(is_prefix(command, "enable"))
+            bp.breakpoint_sites().get_by_id(*site_id).enable();
+        
+        else if(is_prefix(command, "disable"))
+            bp.breakpoint_sites().get_by_id(*site_id).disable();
+    }
+
+    else if(is_prefix(command, "enable"))
+        bp.enable();
+
+    else if(is_prefix(command, "disable"))
+        bp.disable();
+
+    else if(is_prefix(command, "delete")) {
+        bp.breakpoint_sites().for_each([&] (auto & site) {
+            target.get_process().breakpoint_sites().remove_by_address(site.address());
+        });
+
+        target.breakpoints().remove_by_id(*id);
+    }
+}
+
 void handle_breakpoint_set_command(kdebugger::target & target, const std::vector<std::string> & args) {
     bool hardware = false;
     if(args.size() == 4) {
