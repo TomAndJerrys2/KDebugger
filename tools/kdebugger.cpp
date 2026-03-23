@@ -33,8 +33,6 @@ void print_source(const std::filesystem::path & path, std::uint64_t line, std::u
     auto start_line = line <= n_lines_context ? 1 : line - n_lines_context;
     auto end_line = line + n_lines_context + 1;
 
-    char c{};
-    auto current_line = 1u;
     while(current_line != start_line && file.get(c)) {
         if(c == '\n')
             ++current_line;
@@ -45,6 +43,14 @@ void print_source(const std::filesystem::path & path, std::uint64_t line, std::u
         auto arrow = current_line == line ? ">" : " ";
 
         std::print("{} {:>{}}", arrow, current_line, fill_width);
+    }
+
+    print_line_start(current_line);
+    while(current_line != start_line && file.get(c)) {
+        if(c == '\n') {
+            ++current_line;
+            print_line_start(current_line);
+        }
     }
 }
 
