@@ -1,4 +1,4 @@
-/: General Headers
+// General Headers
 #include <iostream>
 #include <unistd.h>
 #include <string_view>
@@ -208,12 +208,18 @@ namespace {
 namespace {
     std::string get_signal_stop_reason(const kdebugger::target & target, kdebugger::stop_reason reason) {
         auto & process = target.get_process();
-        std::string message = std::format("stopped with signal {} at {:#x}", sigabbrev_np(reason.info), process.get_pc().addr());
+        auto pc = process.get_pc();
+        std::string message = std::format("stopped with signal {} at {:#x}", sigabbrev_np(reason.info), pc.addr());
 
-        auto func = target.get_elf().get_symbol_containing_address(process.get_pc());
-        if(func && ELF64_ST_TYPE(func.value()->st_info) == STT_FUNC) {
-            message += std::format("({})", target.get_elf().get_string(func.value()->st_name));
+        auto line = target.line_entry_at_pc();
+        if(line != kdebugger::line_table::iterator()) {
+            auto file = line->file_entry->path.filename().string();
+            message += std::format(", {} : {}", file, line->line);
         }
+
+        auto func_name = target.function_name_at_address(pc);
+        if(func_name != "")
+            message += std::format("  ({})", func_name);
 
         if(reason.info == SIGTRAP)
             message += get_sigtrap_info(process, reason);
