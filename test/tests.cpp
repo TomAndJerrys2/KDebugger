@@ -705,4 +705,22 @@ TEST_CASE("Source-level breakpoints", "[breakpoint]") {
 			lowest_bkpt = &site;
 		}
 	});
+
+	lowest_bkpt->disable();
+
+	proc.resume();
+	proc.wait_on_signal();
+
+	REQUIRE(target->line_entry_at_pc()->line == 9);
+
+	proc.resume();
+	proc.wait_on_signal();
+
+	REQUIRE(target->line_entry_at_pc()->line == 13);
+
+	proc.resume();
+	auto reason = proc.wait_on_signal();
+
+	REQUIRE(reason.reason == kdebugger::process_state::exited);
+	close(dev_null);
 }
