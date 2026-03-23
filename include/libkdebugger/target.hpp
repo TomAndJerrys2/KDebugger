@@ -82,5 +82,7 @@ namespace kdebugger {
 	
 			kdebugger::line_table::iterator line_entry_at_pc() const;
 			kdebugger::stop_reason run_until_address(virt_addr address);
+
+			std::string function_name_at_address(virt_addr address) const;
 		};
 }

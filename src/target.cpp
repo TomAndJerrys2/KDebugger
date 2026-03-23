@@ -1,5 +1,6 @@
 #include <csignal>
 #include <optional>
+#include <cxxabi.h>
 
 #include <libkdebugger/target.hpp>
 #include <libkdebugger/types.hpp>
@@ -199,5 +200,25 @@ namespace {
 
 	kdebugger::breakpoint & kdebugger::target::create_line_breakpoint(std::filesystem::path file, std::size_t line, bool hardware, bool internal) {
 		return m_Breakpoints.push(std::unique_ptr<line_breakpoint> (new line_breakpoint(*this, file, line, hardware, internal)));
+	}
+
+	std::string kdebugger::target::function_name_at_address(virt_addr address) const {
+		auto file_address = address.to_file_addr(*m_Elf);
+		auto obj = file_address.elf_file();
+		if(!obj)
+			return "";
+
+		auto func = obj->get_dwarf().function_containing_address(file_address);
+		if(func && func->name())
+			return std::string {*func->name()};
+
+		else if(auto elf_func = obj->get_symbol_containing_address(file_address);
+				elf_func && ELF64_ST_TYPE(elf_func.value()->st_info) == STT_FUNC) {
+			auto elf_name = std::string {obj->get_string(elf_func.value()->st_name)};
+
+			return abi::__cx_demangle(elf_name.c_str(), nullptr, nullptr, nullptr);
+		}
+
+		return "";
 	}
 }
