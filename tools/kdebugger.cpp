@@ -28,6 +28,26 @@
 #include <libkdebugger/disassembler.hpp>
 #include <libkdebugger/target.hpp>
 
+void print_source(const std::filesystem::path & path, std::uint64_t line, std::uint64_t n_lines_context) {
+    std::ifstream file {path.string()};
+    auto start_line = line <= n_lines_context ? 1 : line - n_lines_context;
+    auto end_line = line + n_lines_context + 1;
+
+    char c{};
+    auto current_line = 1u;
+    while(current_line != start_line && file.get(c)) {
+        if(c == '\n')
+            ++current_line;
+    }
+
+    auto print_line_start = [&] (auto current_line) {
+        auto fill_width = static_cast<int> (std::floor(std::log10(end_line))) + 1;
+        auto arrow = current_line == line ? ">" : " ";
+
+        std::print("{} {:>{}}", arrow, current_line, fill_width);
+    }
+}
+
 void handle_breakpoint_toggle(kdebugger::target & target, const std::vector<std::string> & args) {
     auto command = args[1];
     auto dot_pos = args[2].find('.');
