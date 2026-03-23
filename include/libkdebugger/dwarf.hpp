@@ -513,5 +513,30 @@ namespace kdebugger {
 			die as_reference() const;
 
 			range_list as_range_list() const;
-	}
+	};
+
+	class call_frame_information {
+		
+		private:
+			const dwarf * m_Dwarf;
+
+		public:
+			struct common_information_entry {
+				std::uint32_t length;
+				std::uint64_t code_alignment_factor;
+				std::int64_t data_alignment_factor;
+			
+				bool fde_has_augmentation;
+				std::uint8_t fde_pointer_encoding;
+				span<const std::byte> instructions;
+			};
+
+			call_frame_information() = delete;
+			call_frame_information(const call_frame_information &) = delete;
+			call_frame_information & operator = (const call_frame_information &) = delete;
+
+			const dwarf & dwarf_info() const {
+				return *m_Dwarf;
+			}
+	};
 }
