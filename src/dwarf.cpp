@@ -955,3 +955,59 @@ const kdebugger::call_frame_information::common_information_entry & kdebugger::c
 	m_CieMap.emplace(offset, cie);
 	return m_CieMap.at(offset);
 }
+
+std::uint64_t parse_eh_frame_pointer_with_base(cursor & cur, std::uint8_t encoding, std::uint64_t base);
+
+kdebugger::call_frame_information::common_information_entry parse_cie(cursor cur) {
+	auto start = cur.position();
+	auto length = cur.u32() + 4;
+	auto id = cur.u32();
+	auto version = cur.u8();
+
+	if(!(version == 1 || version == 3 || version == 4))
+		kdebugger::error::send("Invalid CIE version");
+
+	auto augmentation = cur.string();
+	if(!augmentation.empty() && augmentation[0] != 'z')
+		kdebugger::error::send("Invalid CIE augmentation");
+
+	if(version == 4) {
+		auto address_size = cur.u8();
+		auto segment_size = cur.u8();
+	
+		if(address_size != 8)
+			kdebugger::error::send("Invalid address size");
+
+		if(segment_size != 0)
+			kdebugger::error::send("Invalid segment size");
+	}
+
+	auto code_alignment_factor = cur.uleb128();
+	auto data_alignment_factor = cur.sleb128();
+	auto return_address_register = version == 1 ? cur.u8() : cur.uleb128();
+
+	std::uint8_t fde_pointer_encoding = DW_EH_PE_udata8 | DW_EH_PE_absptr;
+	for(auto c : augmentation) {
+		switch(c) {
+			case 'z':
+				cur.uleb128();
+				break;
+
+			case 'R':
+				fde_pointer_encoding = cur.u8();
+				break;
+
+			case 'L':
+				cur.u8();
+				break;
+
+			case 'P':
+				auto encoding = cur.u8();
+				(void)parse_eh_frame_pointer_with_base(cur, encoding, 0);
+				break;
+
+			default:
+				kdebugger::error::send("Invalid CIE augmentation");
+		}
+	}
+}
