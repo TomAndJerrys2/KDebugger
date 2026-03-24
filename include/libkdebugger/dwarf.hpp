@@ -520,6 +520,8 @@ namespace kdebugger {
 		private:
 			const dwarf * m_Dwarf;
 
+			mutable std::unordered_map<std::uint32_t, common_information_entry> m_CieMap;
+
 		public:
 			struct common_information_entry {
 				std::uint32_t length;
@@ -538,5 +540,7 @@ namespace kdebugger {
 			const dwarf & dwarf_info() const {
 				return *m_Dwarf;
 			}
+
+			const common_information_entry & get_cie(file_offset at) const;
 	};
 }

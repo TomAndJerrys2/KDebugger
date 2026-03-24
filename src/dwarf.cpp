@@ -943,3 +943,15 @@ std::vector<kdebugger::die> kdebugger::dwarf::inline_stack_at_address(file_addr 
 
 	return stack;
 }
+
+const kdebugger::call_frame_information::common_information_entry & kdebugger::call_frame_information::get_cie(file_offset at) const {
+	auto offset = at.off();
+	if(m_CieMap.count(offset))
+		return m_CieMap.at(offset);
+
+	auto section = at.elf_file()->get_section_contents(".eh_frame");
+	cursor cur({at.elf_file()->file_offset_as_data_pointer(at), section.end()});
+	auto cie = parse_cie(cur);
+	m_CieMap.emplace(offset, cie);
+	return m_CieMap.at(offset);
+}
