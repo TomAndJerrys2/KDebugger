@@ -108,6 +108,14 @@ namespace kdebugger {
 			std::optional<const Elf64_Sym *> get_symbol_containing_address(file_addr addr) const;
 			std::optional<const Elf64_Sym *> get_symbol_containing_address(virt_addr addr) const;
 
+			file_offset data_pointer_as_file_offset(const std::byte * ptr) const {
+				return file_offset(*this, ptr - m_Data);
+			}
+
+			const std::byte * file_offset_as_data_pointer(file_offset offset) const {
+				return m_Data + offset.off();
+			}
+
 			~elf();
 	}
 }
