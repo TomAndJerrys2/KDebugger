@@ -533,6 +533,14 @@ namespace kdebugger {
 				span<const std::byte> instructions;
 			};
 
+			struct frame_description_entry {
+				std::uint32_t length;
+				const common_information_entry * cie;
+				file_addr initial_location;
+				std::uint64_t address_range;
+				span<const std::byte> instructions;
+			};
+
 			call_frame_information() = delete;
 			call_frame_information(const call_frame_information &) = delete;
 			call_frame_information & operator = (const call_frame_information &) = delete;
