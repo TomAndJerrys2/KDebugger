@@ -956,7 +956,39 @@ const kdebugger::call_frame_information::common_information_entry & kdebugger::c
 	return m_CieMap.at(offset);
 }
 
-std::uint64_t parse_eh_frame_pointer_with_base(cursor & cur, std::uint8_t encoding, std::uint64_t base);
+std::uint64_t parse_eh_frame_pointer_with_base(cursor & cur, std::uint8_t encoding, std::uint64_t base) {
+	switch(encoding & 0x0f) {
+		case DW_EH_PE_absptr:
+			return base + cur.u64();
+
+		case DW_EH_PE_uleb128:
+			return base + cur.uleb128();
+
+		case DW_EH_PE_udata2:
+			return base + cur.u16();
+
+		case DW_EH_PE_udata4:
+			return base + cur.u32();
+
+		case DW_EH_PE_udata8:
+			return base + cur.u64();
+
+		case DW_EH_PE_sleb128:
+			return base + cur.sleb128();
+
+		case DW_EH_PE_sdata2:
+			return base + cur.s16();
+
+		case DW_EH_PE_sdata4:
+			return base + cur.s32();
+
+		case DW_EH_PE_sdata8:
+			return base + cur.s64();
+
+		default:
+			kdebugger::error::send("Unkown eh_frame pointer encoding");
+	}
+}
 
 kdebugger::call_frame_information::common_information_entry parse_cie(cursor cur) {
 	auto start = cur.position();
