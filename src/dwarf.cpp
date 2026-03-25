@@ -1083,3 +1083,8 @@ std::uint64_t parse_eh_frame_pointer(const kdebugger::elf & elf, cursor & cur, s
 
 	return parse_eh_frame_pointer_with_base(cur, encoding, base);
 }
+
+kdebugger::call_frame_information::frame_description_entry parse_fde(const kdebugger::call_frame_information & cfi, cursor cur) {
+	auto start = cur.position();
+	auto length = cur.u32() + 4;
+}
