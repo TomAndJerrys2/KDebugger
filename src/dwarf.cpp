@@ -1052,3 +1052,34 @@ kdebugger::call_frame_information::common_information_entry parse_cie(cursor cur
 		data_alignment_factor, fde_has_augmentation,
 		fde_pointer_encoding, instructions };;
 }
+
+std::uint64_t parse_eh_frame_pointer(const kdebugger::elf & elf, cursor & cur, std::uint8_t encoding, std::uint64_t pc, std::uint64_t text_section_start, 
+		std::uint64_t data_section_start, std::uint64_t func_start) {
+	std::uint64_t base = 0;
+
+	switch(encoding & 0x70) {
+		case DW_EH_PE_absptr:
+			break;
+
+		case DW_EH_PE_pcrel:
+			base = pc;
+			break;
+
+		case DW_EH_PE_textrel:
+			base = text_section_start;
+			break;
+
+		case DW_EH_PE_datarel:
+			base = data_section_start;
+			break;
+
+		case DW_EH_PE_funcrel:
+			base = func_start;
+			break;
+
+		default:
+			kdebugger::error::send("Unkown eh_frame pointer encoding");
+	}
+
+	return parse_eh_frame_pointer_with_base(cur, encoding, base);
+}
