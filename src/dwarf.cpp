@@ -1010,4 +1010,13 @@ kdebugger::call_frame_information::common_information_entry parse_cie(cursor cur
 				kdebugger::error::send("Invalid CIE augmentation");
 		}
 	}
+
+	kdebugger::span<const std::byte> instructions = {
+		cur.position(), start + length
+	};
+
+	bool fde_has_augmentation = !augmentation.empty();
+	return { length, code_alignment_factor,
+		data_alignment_factor, fde_has_augmentation,
+		fde_pointer_encoding, instructions };;
 }
