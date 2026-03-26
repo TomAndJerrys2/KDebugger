@@ -541,6 +541,15 @@ namespace kdebugger {
 				span<const std::byte> instructions;
 			};
 
+			struct eh_hdr {
+				const std::byte * start;
+				const std::byte * search_table;
+				std::size_t count;
+				std::uint8_t encoding;
+				call_frame_information * parent;
+				const std::byte * operator [] (file_addr address) const;
+			};
+
 			call_frame_information() = delete;
 			call_frame_information(const call_frame_information &) = delete;
 			call_frame_information & operator = (const call_frame_information &) = delete;
