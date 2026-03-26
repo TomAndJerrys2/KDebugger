@@ -1087,4 +1087,25 @@ std::uint64_t parse_eh_frame_pointer(const kdebugger::elf & elf, cursor & cur, s
 kdebugger::call_frame_information::frame_description_entry parse_fde(const kdebugger::call_frame_information & cfi, cursor cur) {
 	auto start = cur.position();
 	auto length = cur.u32() + 4;
+	auto elf = cfi.dwarf_info().elf_file();
+	auto current_offset = elf->data_pointer_as_file_offset(cur.position());
+
+	kdebugger::file_offset cie_offset {*elf, current_offset.off() - cur.s32()};
+	auto & cie = cfi.get_cie(cie_offset);
+
+	current_offset = elf->data_pointer_as_file_offset(cur.position());
+	auto text_section_start = elf->get_section_start_address(".text").value_or(kdebugger::file_addr {});
+	auto initial_location_addr = parse_eh_frame_pointer(*elf, cur, cie.fde_pointer_encoding, current_offset.off(), text_section_start.addr(), 0, 0);
+
+	kdebugger::file_addr initial_location(*elf, initial_location_addr);
+	auto address_range = parse_eh_frame_pointer_with_base(cur, cie.fde_pointer_encoding, 0);
+
+	if(cie.fde_has_augmentation) {
+		auto augmentation_length = cur.uleb128();
+		cur += augmentation_length;
+	}
+
+	kdebugger::span<const std::byte> instructions = {cur.position(), start + length};
+	return {length, &cie, initial_location, address_range, instructions};
+	
 }
