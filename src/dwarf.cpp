@@ -1109,3 +1109,18 @@ kdebugger::call_frame_information::frame_description_entry parse_fde(const kdebu
 	return {length, &cie, initial_location, address_range, instructions};
 	
 }
+
+kdebugger::call_frame_information::eh_hdr parse_eh_hdr(kdebugger::dwarf & dwarf) {
+	auto elf = dwarf.elf_file();
+	auto eh_hdr_start = *elf->get_section_start_address(".eh_frame_hdr");
+	auto text_section_start = *elf->get_section_start_address(".text");
+
+	auto eh_hdr_data = elf->get_section_contents(".eh_frame_hdr");
+	cursor cur(eh_hdr_data);
+
+	auto start = cur.position();
+	auto version = cur.u8();
+	auto eh_frame_ptr_enc = cur.u8();
+	auto fde_count_enc = cur.u8();
+	auto table_enc = cur.u8();
+}
