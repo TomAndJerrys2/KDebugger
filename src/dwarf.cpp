@@ -1131,3 +1131,22 @@ kdebugger::call_frame_information::eh_hdr parse_eh_hdr(kdebugger::dwarf & dwarf)
 
 	return {start, search_table, fde_count, table_enc, nullptr};
 }
+
+std::size_t eh_frame_pointer_encoding_size(std::uint8_t encoding) {
+	switch(encoding & 0x7) {
+		case DW_EH_PE_absptr:
+			return 8;
+
+		case DW_EH_PE_udata2:
+			return 2;
+
+		case DW_EH_PE_udata4:
+			return 4;
+
+		case DW_EH_PE_udata8:
+			return 8;
+
+		default:
+			kdebugger::error::send("Invalid pointer encoding");
+	}
+}
