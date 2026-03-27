@@ -1123,4 +1123,11 @@ kdebugger::call_frame_information::eh_hdr parse_eh_hdr(kdebugger::dwarf & dwarf)
 	auto eh_frame_ptr_enc = cur.u8();
 	auto fde_count_enc = cur.u8();
 	auto table_enc = cur.u8();
+
+	(void)parse_eh_frame_pointer_with_base(cur, eh_frame_ptr_enc, 0);
+
+	auto fde_count = parse_eh_frame_pointer_with_base(cur, fde_count, 0);
+	auto search_table = cur.position();
+
+	return {start, search_table, fde_count, table_enc, nullptr};
 }
