@@ -20,7 +20,10 @@ namespace kdebugger {
 			// from sys/users.h
 			user m_Data;
 			process * m_Process
-			
+
+			std::vector<std::size_t> m_Undefined;
+			virt_addr m_Cfa;
+
 			registers(process & proc) : m_Process {proc} {} 
 
 		public:
@@ -39,7 +42,7 @@ namespace kdebugger {
 			>;
 			
 			value read(const register_info & info) const;
-			void write(const register_info & info, value val);
+			void write(const register_info & info, value val, bool commit = true);
 			
 			// read by the id depending on a given type of register
 			template <class T> T read_by_id_as(register_id id) const {
@@ -47,8 +50,21 @@ namespace kdebugger {
 			}
 			
 			// wrapper function where info = id
-			void write_by_id(register_id id, value val) {
+			void write_by_id(register_id id, value val, bool commit = true) {
 				write(register_info_by_id)
 			}
+
+			bool is_undefined(register_id id) const;
+			void undefine(register_id id);
+
+			virt_addr cfa() const {
+				return m_Cfa;
+			}
+
+			void set_cfa(virt_addr addr) {
+				m_Cfa = addr;
+			}
+
+			void flush();
 	};
 }
