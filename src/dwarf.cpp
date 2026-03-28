@@ -1150,3 +1150,37 @@ std::size_t eh_frame_pointer_encoding_size(std::uint8_t encoding) {
 			kdebugger::error::send("Invalid pointer encoding");
 	}
 }
+
+const std::byte * kdebugger::call_frame_information::eh_hdr::operator [] (file_addr address) const {
+	auto elf = address.elf_file();
+	auto text_section_start = *elf->get_section_start_address(".text");
+	auto encoding_size = eh_frame_pointer_encoding_size(encoding);
+
+	std::size_t low = 0;
+	std::size_t high = count - 1;
+	while(low <= high) {
+		std::size_t mid = (low + high) / 2;
+
+		cursor cur({search_table + mid * row_size, search_table + count * row_size});
+		auto current_offset = elf->data_pointer_as_file_offset(cur.position());
+		auto eh_hdr_offset = elf->data_pointer_as_file_offset(start);
+		auto entry_address = parse_eh_frame_pointer(*elf, cur, encoding, current_offset.off(),
+				text_section_start.addr(), eh_hdr_offset.off(), 0);
+
+		if(entry_address < address.addr()) {
+			low = mid + 1;
+		}
+
+		else if(entry_address > address.addr()) {
+			if(mid == 0)
+				kdebugger::error::send("Address not found in eh_hdr");
+		
+			high = mid - 1;
+		}
+
+		else {
+			high = mid;
+			break;
+		}
+	}
+}
