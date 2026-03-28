@@ -127,3 +127,21 @@ bool kdebugger::registers::is_undefined(register_id id) const {
 	return std::find(begin(m_Undefined), end(m_Undefined), canonical_offset)
 		!= end(m_Undefined);
 }
+
+
+void kdebugger::registers::flush() {
+	m_Proc->write_fprs(m_Data.i387);
+	m_Proc->write_gprs(m_Data.regs);
+	auto info = register_info_by_id(register_id::dr0);
+
+	for(auto i {0}; i < 8; ++i) {
+		if(i == 4 || i == 5)
+			continue;
+
+		auto reg_offset = info.offset + sizeof(std::uint64_t) * i;
+		auto ptr = reinterpret_cast<std::byte *>(m_Data.u_debugreg + i);
+		auto bytes = from_bytes<std::uint64_t>(ptr);
+
+		m_Proc->write_user_area(reg_offset, bytes);
+	}
+}
