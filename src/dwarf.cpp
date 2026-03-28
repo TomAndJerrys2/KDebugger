@@ -1267,3 +1267,31 @@ kdebugger::registers kdebugger::call_frame_information::unwind(const kdebugger::
 
 	return execute_unwind_rules(ctx, regs, proc);
 }
+
+void execute_cfi_instruction(const kdebugger::elf & elf, const kdebugger::call_frame_information::frame_description_entry & fde, 
+		unwind_context & ctx, kdebugger::file_addr pc) {
+	auto & cie = *fde.cie;
+	auto & cur = ctx.cur;
+	auto text_section_start = *elf.get_section_start_address(".text");
+	auto plt_start = elf.get_section_start_address(".got.plt").value_or(kdebugger::file_addr {});
+
+	auto opcode = cur.u8();
+	auto primary_opcode = opcode & 0xc0;
+	auto extended_opcode = opcode & 0x3f;
+	if(primary_opcode) {
+		switch(primary_opcode) {
+			case DW_CFA_advance_loc:
+				ctx.location += extended_opcode * cie.code_alignment_factor;
+				break;
+
+			case DW_CFA_offset:
+				auto offset = static_cast<std::uint64_t>(cur.uleb128()) * cie.data_alignment_factor;
+				ctx.register_rules.emplace(extended_opcode, offset_rule {offset});
+				break;
+
+			case DW_CFA_restore:
+				ctx.register_rules.emplace(extended_opcode, ctx.cie_register_rules.at(extended_opcode));
+				break;
+		}
+	}
+}
