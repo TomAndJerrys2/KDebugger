@@ -1183,4 +1183,14 @@ const std::byte * kdebugger::call_frame_information::eh_hdr::operator [] (file_a
 			break;
 		}
 	}
+
+	cursor cur({search_table + high * row_size + encoding_size, search_table + count * row_size});
+	auto current_offset = elf->data_pointer_as_file_offset(cur.position());
+	auto eh_hdr_offset = elf->data_pointer_as_file_offset(start);
+	auto fde_offset_int = parse_eh_frame_pointer(*elf, cur, encoding, current_offset.off(), 
+			text_section_start.addr(), eh_hdr_offset.off());
+	kdebugger::file_offset fde_offset {*elf, fde_offset_int};
+
+	return elf->file_offset_as_data_pointer(fde_offset);
+
 }
