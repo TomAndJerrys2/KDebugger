@@ -1,5 +1,24 @@
 #include <libkdebugger/dwarf.hpp>
 
+struct undefined_rule {};
+struct same_rule {};
+struct offset_rule {
+	std::int64_t offset;
+};
+
+struct val_offset_rule {
+	std::int64_t offset;
+};
+
+struct register_rule {
+	std::uint32_t reg;
+};
+
+struct cfa_register_rule {
+	std::uint32_t reg;
+	std::int64_t offset;
+};
+
 const std::unordered_map<std::uint64_t, kdebugger::abbrev> & kdebugger::dwarf::get_abbrev_table(std::size_t offset) {
 	if(!m_AbbrevTables.count(offset))
 		m_AbbrevTables.emplace(offset, parse_abbrev_table(*m_Elf, offset));
