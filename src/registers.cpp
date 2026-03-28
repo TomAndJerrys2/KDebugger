@@ -116,3 +116,14 @@ namespace {
 		return to_byte128(t);
 	}
 }
+
+void kdebugger::registers::undefine(register_id id) {
+	std::size_t canonical_offset = register_info_by_id(id).offset >> 1;
+	m_Undefined.push_back(canonical_offset);
+}
+
+bool kdebugger::registers::is_undefined(register_id id) const {
+	std::size_t canonical_offset = register_info_by_id(id).offset >> 1;
+	return std::find(begin(m_Undefined), end(m_Undefined), canonical_offset)
+		!= end(m_Undefined);
+}
