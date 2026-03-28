@@ -11,8 +11,10 @@
 namespace {
 	// reading a specific valued register
 	kdebugger::registers::value kdebugger::registers::read(const register_info & info) const {
-		auto bytes = as_bytes(m_Data);
+		if(is_undefined(info.id))
+			kdebugger::error::send("Register is undefined");
 
+		auto bytes = as_bytes(m_Data);
 		if(info.format == register_format::uint) {
 			switch(info.size) {
 				case 1:
