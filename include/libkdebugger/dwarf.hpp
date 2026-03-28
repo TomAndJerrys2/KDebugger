@@ -522,6 +522,7 @@ namespace kdebugger {
 			eh_hdr m_EhHdr;
 
 			mutable std::unordered_map<std::uint32_t, common_information_entry> m_CieMap;
+			std::unique_ptr<call_frame_information> m_Cfi;
 
 		public:
 			struct common_information_entry {
@@ -564,5 +565,9 @@ namespace kdebugger {
 			}
 
 			const common_information_entry & get_cie(file_offset at) const;
+
+			const call_frame_information & cfi() const {
+				return *m_Cfi;
+			}
 	};
 }
