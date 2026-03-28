@@ -1194,3 +1194,8 @@ const std::byte * kdebugger::call_frame_information::eh_hdr::operator [] (file_a
 	return elf->file_offset_as_data_pointer(fde_offset);
 
 }
+
+std::unique_ptr<kdebugger::call_frame_information> parse_call_frame_information(kdebugger::dwarf & dwarf) {
+	auto eh_hdr = parse_eh_hdr(dwarf);
+	return std::make_unique<kdebugger::call_frame_information>(&dwarf, eh_hdr);
+}
