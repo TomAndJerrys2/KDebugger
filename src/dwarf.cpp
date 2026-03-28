@@ -154,6 +154,7 @@ const std::unordered_map<std::uint64_t, kdebugger::abbrev> & kdebugger::compile_
 
 kdebugger::dwarf::dwarf(const kdebugger::elf & parent) : m_Elf {&parent} {
 	m_CompileUnits = parse_compile_units(*this, parent);
+	m_Cfi = parse_call_frame_information(*this);
 }
 
 std::vector<std::unique_ptr<compile_unit>> parse_compile_units(kdebugger::dwarf & dwarf, const kdebugger::elf & obj) {
