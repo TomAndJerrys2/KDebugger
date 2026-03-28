@@ -519,6 +519,7 @@ namespace kdebugger {
 		
 		private:
 			const dwarf * m_Dwarf;
+			eh_hdr m_EhHdr;
 
 			mutable std::unordered_map<std::uint32_t, common_information_entry> m_CieMap;
 
@@ -553,6 +554,10 @@ namespace kdebugger {
 			call_frame_information() = delete;
 			call_frame_information(const call_frame_information &) = delete;
 			call_frame_information & operator = (const call_frame_information &) = delete;
+
+			call_frame_information(const dwarf * dwarf, eh_hdr hdr) : m_Dwarf {dwarf}, m_EhHdr {hdr} {
+				m_EhHdr.parent = this;
+			}
 
 			const dwarf & dwarf_info() const {
 				return *m_Dwarf;
