@@ -1,3 +1,7 @@
+// General headers
+#include <variant>
+
+// Project specific headers
 #include <libkdebugger/dwarf.hpp>
 
 struct undefined_rule {};
@@ -17,6 +21,24 @@ struct register_rule {
 struct cfa_register_rule {
 	std::uint32_t reg;
 	std::int64_t offset;
+};
+
+struct unwind_context {
+	cursor cur({nullptr, nullptr});
+	kdebugger::file_addr location;
+	cfa_register_rule cfa_rule;
+
+	using rule = std::variant<undefined_rule, 
+		  					  same_rule, 
+							  offset_rule,
+							  val_offset_rule,
+							  register_rule>;
+
+	using ruleset = std::unordered_map<std::uint32_t, rule>;
+	ruleset cie_register_values;
+	ruleset register_rules;
+
+	std::vector<std::pair<ruleset, cfa_register_rule>> rule_stack;
 };
 
 const std::unordered_map<std::uint64_t, kdebugger::abbrev> & kdebugger::dwarf::get_abbrev_table(std::size_t offset) {
