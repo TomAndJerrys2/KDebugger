@@ -3,6 +3,7 @@
 
 // Project specific headers
 #include <libkdebugger/dwarf.hpp>
+#include <libkdebugger/process.hpp>
 
 struct undefined_rule {};
 struct same_rule {};
@@ -1240,4 +1241,29 @@ const std::byte * kdebugger::call_frame_information::eh_hdr::operator [] (file_a
 std::unique_ptr<kdebugger::call_frame_information> parse_call_frame_information(kdebugger::dwarf & dwarf) {
 	auto eh_hdr = parse_eh_hdr(dwarf);
 	return std::make_unique<kdebugger::call_frame_information>(&dwarf, eh_hdr);
+}
+
+kdebugger::registers kdebugger::call_frame_information::unwind(const kdebugger::process & proc, file_addr pc, registers & regs) const {
+	auto fde_start = m_EhHdr[pc];
+	auto eh_frame_end = m_Dwarf->elf_file()->get_section_contents(".eh_frame").end();
+
+	cursor cur({fde_start, eh_frame_end});
+	auto fde = parse_fde(*this, cur);
+	if(pc < fde.initial_location || pc >= fde.initial_location + fde.address_range)
+		kdebugger::error::send("No unwind information at PC");
+
+	unwind_context ctx {};
+	ctx.cur = cursor(fde.cie->instructions);
+
+	while(!ctx.cur.finished())
+		execute_cfi_instruction(*m_Dwarf->elf_file(), fde, ctx, pc);
+
+	ctx.cie_register_rules = ctx.register_rules;
+	ctx.cur = cursor(fde.instructions);
+	ctx.location = fde.initial_location;
+
+	while(!ctx.cur.finished() && ctx.location <= pc)
+		execute_cfi_instruction(*m_Dwarf->elf_file(), fde, ctx, pc);
+
+	return execute_unwind_rules(ctx, regs, proc);
 }
