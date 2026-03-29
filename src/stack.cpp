@@ -35,4 +35,43 @@ void kdebugger::target::notify_stop(const kdebugger::stop_reason & reason) {
 	m_Stack.unwind();
 }
 
+void kdebugger::stack::unwind() {
+	reset_inline_height();
+	m_CurrentFrame = m_InlineHeight;
 
+	auto virt_pc = m_Target->get_process().get_pc();
+	auto file_pc = m_Target->get_pc_file_address();
+	auto & proc = m_Target->get_process();
+	auto regs = proc.get_registers();
+
+	m_Frames.clear();
+
+	auto elf = file_pc.elf_file();
+	if(!elf)
+		return;
+
+	// creates stack frame objects and unwinds the next
+	while(virt_pc.addr() != 0 && elf == &m_Target->get_elf()) {
+		auto & dwarf = elf->get_dwarf();
+		auto inline_stack = dwarf.inline_stack_at_address(file_pc);
+		if(inline_stack.empty())
+			return;
+
+		if(inline_stack.size() > 1) {
+			create_base_frame(regs, inline_stack, file_pc, true);
+			create_inline_stack_frames(regs, inline_stack, file_pc);
+		}
+
+		else {
+			create_base_frame(regs, inline_stack, file_pc, false);
+		}
+
+		regs = dwarf.cfi().unwind(proc, file_pc, m_Frames.back().regs);
+		virt_pc = virt_addr {
+			regs.read_by_id_as<std::uint64_t>(register_id::rip) - 1;
+		};
+
+		file_pc = virt_pc.to_file_addr(m_Target->get_elf());
+		elf = file_pc.elf_file();
+	}
+}
