@@ -5,8 +5,17 @@
 
 // Private / project specific includes
 #include <libkdebugger/dwarf.hpp>
+#include <libkdebugger/registers.hpp>
 
 namespace kdebugger {
+	struct stack_frame {
+		registers regs;
+		virt_addr backtrace_report_address;
+		die func_die;
+		bool inlined = false;
+		source_location location;
+	};
+	
 	class target;
 
 	class stack {

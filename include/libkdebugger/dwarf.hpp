@@ -552,6 +552,8 @@ namespace kdebugger {
 				const std::byte * operator [] (file_addr address) const;
 			};
 
+			registers unwind(const process & proc, file_addr pc, registers & regs) const;
+
 			call_frame_information() = delete;
 			call_frame_information(const call_frame_information &) = delete;
 			call_frame_information & operator = (const call_frame_information &) = delete;
