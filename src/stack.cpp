@@ -85,3 +85,12 @@ void kdebugger::stack::create_base_frame(const registers & regs, const std::vect
 	m_Frames.push_back({regs, backtrace_pc, inline_stack.back(), inlined});
 	m_Frames.back().location = source_location(line_entry->file_entry, line_entry->line);
 }
+
+void kdebugger::stack::create_inline_stack_frames(const registers & regs, const std::vector<kdebugger::die> inline_stack, file_addr pc) {
+	for(auto it = inline_stack.rbegin() + 1; it != inline_stack.rend(); ++it) {
+		auto inlined_pc = std::prev(it)->low_pc().to_virt_addr();
+		m_Frames.push_back(stack_frame{regs, inlined_pc, *it});
+		m_Frames.back().inlined = std::next(it) != inline_stack.rend();
+		m_Frames.back().location = std::prev(it)->location();
+	}
+}
