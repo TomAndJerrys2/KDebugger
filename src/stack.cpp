@@ -29,4 +29,10 @@ const kdebugger::registers & kdebugger::stack::regs() const {
 
 kdebugger::virt_addr kdebugger::stack::get_pc() const {
 	return virt_addr {regs().read_by_id_as<std::uint64_t>(kdebugger::register_id::rip)};
-}	
+}
+
+void kdebugger::target::notify_stop(const kdebugger::stop_reason & reason) {
+	m_Stack.unwind();
+}
+
+
