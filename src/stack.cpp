@@ -18,3 +18,15 @@ void kdebugger::stack::reset_inline_height() {
 	for(auto it = stack.rbegin(); it != stack.rend() && it->low_pc == pc; ++it)
 		++m_InlineHeight;
 }
+
+kdebugger::span<const kdebugger::stack_frame> kdebugger::stack::frames() const {
+	return {m_Frames.data() + m_InlineHeight, m_Frames.size() - m_InlineHeight};
+}
+
+const kdebugger::registers & kdebugger::stack::regs() const {
+	return m_Frames[m_CurrentFrame].regs;
+}
+
+kdebugger::virt_addr kdebugger::stack::get_pc() const {
+	return virt_addr {regs().read_by_id_as<std::uint64_t>(kdebugger::register_id::rip)};
+}	
