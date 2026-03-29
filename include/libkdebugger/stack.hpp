@@ -27,6 +27,10 @@ namespace kdebugger {
 			std::vector<stack_frame> m_Frames;
 			std::size_t m_CurrentFrame {0};
 
+			void create_inline_stack_frames(const kdebugger::registers & regs, const std::vector<kdebugger::die> inline_stack, file_addr pc);
+
+			void create_base_frame(const registers & regs, const std::vector<kdebugger::die> inline_stack, file_addr pc, bool inlined);
+
 		public:
 			stack(target * tgt) : m_Target {tgt} {}
 			void reset_inline_height();
