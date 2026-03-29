@@ -75,3 +75,13 @@ void kdebugger::stack::unwind() {
 		elf = file_pc.elf_file();
 	}
 }
+
+void kdebugger::stack::create_base_frame(const registers & regs, const std::vector<kdebugger::die> inline_stack, file_addr pc, bool inlined) {
+	auto backtrace_pc = pc.to_virt_addr();
+	auto line_entry = pc.elf_file()->get_dwarf().line_entry_at_address(pc);
+	if(line_entry != line_table::iterator{})
+		backtrace_pc = line_entry->address.to_virt_addr();
+
+	m_Frames.push_back({regs, backtrace_pc, inline_stack.back(), inlined});
+	m_Frames.back().location = source_location(line_entry->file_entry, line_entry->line);
+}
