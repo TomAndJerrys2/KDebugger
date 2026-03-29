@@ -1398,3 +1398,40 @@ void execute_cfi_instruction(const kdebugger::elf & elf, const kdebugger::call_f
 		}
 	}
 }
+
+kdebugger::registers execute_unwind_rules(unwind_context & ctx, kdebugger::registers & old_regs, const kdebugger::process & proc) {
+	auto unwound_regs = old_regs;
+	
+	auto cfa_reg_info = kdebugger::register_info_by_dwarf(ctx.cfa_rule.reg);
+	auto cfa = std::get<std::uint64_t>(old_regs.read(cfa_reg_info)) + ctx.cfa_rule.offset;
+	old_regs.set_cfa(kdebugger::virt_addr{cfa});
+	unwound_regs.write_by_id(kdebugger::register_id::rsp, {cfa}, false);
+
+	for(auto [reg, rule] : ctx.register_rules) {
+		auto reg_info = kdebugger::register_info_by_dwarf(reg);
+
+		if(auto undef = std::get_if<undefined_rule>(&rule))
+			unwound_regs.undefine(reg_info.id);
+
+		else if(auto same = std::get_if<same_rule>(&rule))
+			continue;
+
+		else if(auto reg = std::get_if<register_rule>(&rule)) {
+			auto other_reg = kdebugger::register_info_by_dwarf(reg->reg);
+			unwound_regs.write(reg_info, old_regs.read(other_reg), false);
+		}
+
+		else if(auto offset = std::get_if<offset_rule>(&rule)) {
+			auto addr = kdebugger::virt_addr {cfa + offset->offset};
+			auto value = kdebugger::from_bytes<std::uint64_t>(proc.read_memory(addr, 8).data());
+			unwound_regs.write(reg_info, {value}, false);
+		}
+
+		else if(auto val_offset = std::get_if<val_offset_rule>(&rule)) {
+			auto addr = cfa + val_offset->offset;
+			unwound_regs.write(reg_info, {addr}, false);
+		}
+	}
+
+	return unwound_regs;
+}
