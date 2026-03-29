@@ -1294,4 +1294,107 @@ void execute_cfi_instruction(const kdebugger::elf & elf, const kdebugger::call_f
 				break;
 		}
 	}
+
+	else if(extended_opcode) {
+		switch(extended_opcode) {
+			case DW_CFA_set_loc:
+				auto current_offset = elf.data_pointer_as_file_offset(cur.position());
+				auto loc = parse_eh_frame_pointer(elf, cur, cie.fde_pointer_encoding,
+						current_offset.off(), text_section_start.addr(), plt_start.addr(),
+						fde.initial_location.addr());
+				ctx.location = kdebugger::file_addr {elf, loc};
+				break;
+
+			case DW_CFA_advance_loc1:
+				ctx.location += cur.u8() * cie.code_alignment_factor;
+				break;
+
+			case DW_CFA_advance_loc2:
+				ctx.location += cur.u16() * cie.code_alignment_factor;
+				break;
+
+			case DW_CFA_advance_loc4:
+				ctx.location += cur.u32() * cie.code_alignment_factor;
+				break;
+
+			case DW_CFA_def_cfa:
+				ctx.cfa_rule.reg = cur.uleb128();
+				ctx.cfa_rule.offset = cur.uleb128();
+				break;
+
+			case DW_CFA_def_cfa_sf:
+				ctx.cfa_rule.reg = cur.uleb128();
+				ctx.cfa_rule.offset = cur.slb128() * cie.data_alignment_factor;
+				break;
+
+			case DW_CFA_def_cfa_offset:
+				ctx.cfa_rule.offset = cur.uleb128();
+				break;
+
+			case DW_CFA_def_cfa_offset_sf:
+				ctx.cfa_rule.offset = cur.sleb128() * cie.data_alignment_factor;
+				break;
+
+			case DW_CFA_def_cfa_expression:
+				kdebugger::error::send("DWARF expressions not yet implemented");
+
+			case DW_CFA_undefined:
+				ctx.register_rules.emplace(cur.uleb128(), undefined_rule{});
+				break;
+
+			case DW_CFA_same_value:
+				ctx.register_rules.emplace(cur.uleb128(), same_rule{});
+				break;
+
+			case DW_CFA_offset_extended:
+				auto reg = cur.uleb128();
+				auto offset = static_cast<std::uint64_t>(cur.uleb128()) * cie.data_alignment_factor;
+				ctx.register_rules.emplace(reg, offset_rule{offset});
+				break;
+	
+			case DW_CFA_offset_extended_sf:
+				auto reg = cur.uleb128();
+				auto offset = cur.sleb128() * cie.data_alignment_factor;
+				ctx.register_rules.emplace(reg, offset_rule{offset});
+				break;
+
+			case DW_CFA_val_offset:
+				auto reg = cur.uleb128();
+				auto offset = static_cast<std::uint64_t>(cur.uleb128()) * cie.data_alignment_factor;
+				ctx.register_rules.emplace(reg, val_offset_rule{offset});
+				break;
+
+			case DW_CFA_val_offset_sf:
+				auto reg = cur.uleb128();
+				auto offset = cur.sleb128() * cie.data_alignment_factor;
+				cttx.register_rules.emplace(reg, val_offset_rule{offset});
+				break;
+
+			case DW_CFA_register:
+				auto reg = cur.uleb128();
+				ctx.register_rules.emplace(reg, register_rule{static_cast<std::uint32_t>(cur.uleb128())});
+				break;
+
+			case DW_CFA_expression:
+				kdebugger::error::send("DWARF expressions not yet implemented");
+
+			case DW_CFA_val_expression:
+				kdebugger::error::send("DWARF expressions not yet implemented");
+
+			case DW_CFA_restore_extended:
+				auto reg = cur.uleb128();
+				ctx.register_rules.emplace(reg, ctx.cie_register_rules.at(reg));
+				break;
+
+			case DW_CFA_remember_state:
+				ctx.rule_stack.push_back({ctx.register_rules, ctx.cfa_rules});
+				break;
+
+			case DW_CFA_restore_state:
+				ctx.register_rules = ctx.rule_stack.back().first;
+				ctx.cfa_rule = ctx.rule_stack.back().second;
+				ctx.rule_stack.pop_back();
+				break;
+		}
+	}
 }
