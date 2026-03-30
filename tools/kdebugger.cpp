@@ -1003,6 +1003,16 @@ namespace {
             handle_stop(*target, reason);
         }
 
+        else if(is_prefix(command, "up")) {
+            target->get_stack().up();
+            print_code_location(*target);
+        }
+
+        else if(is_prefix(command, "down")) {
+            target->get_stack().down();
+            print_code_location(*target);
+        }
+
 		else {
 			std::cerr << "> Unknown Command entered.\n";
 		}
