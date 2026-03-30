@@ -1027,6 +1027,10 @@ namespace {
             print_code_location(*target);
         }
 
+        else if(is_prefix(command, "backtrace")) {
+            print_backtrace(*target);
+        }
+
 		else {
 			std::cerr << "> Unknown Command entered.\n";
 		}
