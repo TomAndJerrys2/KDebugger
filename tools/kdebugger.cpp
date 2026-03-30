@@ -28,6 +28,24 @@
 #include <libkdebugger/disassembler.hpp>
 #include <libkdebugger/target.hpp>
 
+void print_backtrace(const kdebugger::target & target) {
+    auto & stack = target.get_stack();
+    auto i {0};
+
+    for(auto & frame : stack.frames()) {
+        auto pc = frame.backtrace_report_address;
+        auto func_name = target.function_name_at_address(pc);
+
+        std::string message = (i == stack.current_frame_index) ? "*" : " ";
+        message += std::format("[{}]: {:#x} {}", i++, pc.addr(), func_name);
+        if(frame.inlined) {
+            message += std::format("[Inlined] {}", *frame.func_die.name());
+        }
+
+        std::print("{}\n", message);
+    }
+}
+
 void print_code_location(kdebugger::target & target) {
     if(target.get_stack().has_frames()) {
         auto & frame = target.get_stack().current_frame();
