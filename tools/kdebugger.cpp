@@ -622,9 +622,7 @@ namespace {
 		}
 	}
 
-	void handle_register_read(kdebugger::process & process, 
-			const std::vector<std::string> & args) {
-		
+	void handle_register_read(kdebugger::target & target, const std::vector<std::string> & args) {
 		// for formatting cmd arguments when requested
 		auto format = [] (auto t) -> std::string {
 
@@ -645,24 +643,16 @@ namespace {
 		if(args.size() == 2 || (args.size() == 3 && args[2] == "all")) {
 			
 			for(auto & info : kdebugger::register_infos) {
-				auto should_print = (args.size() == 3 
-						|| info.type == kdebugger::register_type::gpr)
-						&& info.name != "orig_rax";
-				
-				if(!should_print)
-					continue;
-
-				auto value = process.get_registers().read(info);
-				std::print("{}:\t{}\n", info.name, std::visit(format, value));
-			}
+			    if(args.size() == 3 || info.type == kdebugger::register_type::gpr)
+			        print_register_value(info);
+            }
 		}
 		
 		// formatted print to output if reading a single register by name
 		else if(args.size() == 3) {
 			try {
-				auto info = kdebugger::register_info_by_name().read(info);
-				auto value = process.get_registers().read(info);
-				std::print("{}:\t{}\n", info.name, std::visit(format, value));
+				auto info = kdebugger::register_info_by_name(args[2]);
+                print_register_value(info);
 			} 
 			catch(kdebugger::error & err) {
 				std::cerr << "Invalid register name!\n";
