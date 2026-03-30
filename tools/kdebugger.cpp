@@ -562,7 +562,9 @@ namespace {
                 next        - step over command
                 step        - step in command
                 stepi       - single instruction step command
-            )";
+                down        - select the stack frame below the current view
+                up          - select the stack frame above the current view
+                )";
 		}
 
 		else if(is_prefix(args[1], "register")) {
