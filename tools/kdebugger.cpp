@@ -738,7 +738,7 @@ namespace {
 
 	// handles commands relating to reading and writing
 	// to and from registers
-	void handle_register_command(kdebugger::process & process, 
+	void handle_register_command(kdebugger::target & target, 
 			const std::vector<std::string> & args) {
 		
 		if(args.size() < 2) {
@@ -746,12 +746,12 @@ namespace {
 			return;
 		}
 
-		if(is_prefix(args[1], "write")) {
-			handle_register_read(process, args);
+		if(is_prefix(args[1], "read")) {
+			handle_register_read(target, args);
 		}
 
 		if(is_prefix(arg[1], "write")) {
-			handle_register_write(process, args);
+			handle_register_write(target.get_process(), args);
 		}
 		
 		else {
@@ -972,7 +972,11 @@ namespace {
 		else if(is_prefix(command, "memory")) {
 			handle_memory_command(*process, args);
 		}
-		
+	
+        else if(is_prefix(command, "register")) {
+            handle_register_command(*target, args);
+        }
+
 		else if(is_prefix(command, "disassemble")) {
 			handle_disassemble_command(*process, args);
 		}
