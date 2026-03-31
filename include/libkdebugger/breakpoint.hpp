@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <string>
+#include <functional>
 
 // Private / project specific includes
 #include <libkdebugger/stoppoint_collection.hpp>
