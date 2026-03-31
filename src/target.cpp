@@ -152,6 +152,7 @@ namespace {
 		return reason;
 	}
 
+	// come back to this as very buggy
 	kdebugger::stop_reason kdebugger::target::step_out() {
 		auto & stack = get_stack();
 		auto inline_stack = stack.inline_stack_at_pc();
@@ -165,11 +166,20 @@ namespace {
 			return run_until_address(return_address);
 		}
 
-		auto frame_pointer = m_Process->get_registers().read_by_id_as<std::uint64_t>(register_id::rbp);
+		auto & regs = stack.frames()[stack.current_frame_index() + 1].regs;
+		virt_addr return_address {
+			regs.read_by_id_as<std::uint64_t>(register_id::rip);
+		};
 
-		auto return_address = m_Process->read_memory_as<std::uint64_t>(virt_addr {frame_pointer + 8});
+		kdebugger::stop_reason reason;
+		for(auto frames = stack.frames().size(); stack.frames().size() >= frames;) {
+			reason = run_until_address(return_address);
 
-		return run_until_address(virt_addr {return_address});
+			if(!reason.is_breakpoint() || m_Process->get_pc() != return_address)
+				return reason;
+		}
+
+		return reason;
 	}
 
 	kdebugger::target::find_functions_result kdebugger::target::find_functions(std::string name) const {
