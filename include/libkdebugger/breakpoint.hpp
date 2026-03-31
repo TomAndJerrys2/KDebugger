@@ -27,6 +27,7 @@ namespace kdebugger {
 			bool m_IsInternal {false};
 
 			breakpoint_site::id_type m_NextSiteId = 1;
+			std::function<bool (void)> m_OnHit;
 
 		public:
 			virtual ~breakpoint() = default;
@@ -71,6 +72,17 @@ namespace kdebugger {
 
 			bool in_range(virt_addr low, virt_addr high) const {
 				return m_BreakPointSites.get_in_region(low, high).empty();
+			}
+
+			void install_hit_handler(std::function<bool (void)> on_hit) {
+				m_OnHit = std::move(on_hit);
+			}
+
+			bool notify_hit() const {
+				if(m_OnHit)
+					return m_OnHit();
+
+				return false;
 			}
 	};
 
