@@ -18,6 +18,11 @@ add_test_cpp_target(anti_debugger)
 add_test_cpp_target(overloaded)
 add_test_cpp_target(step)
 
+add_test_cpp_target(marshmellow)
+add_library(marshmellow SHARED "libmarshmellow.cpp")
+target_compile_options(marshmellow PRIVATE -g -Oo -fPIC -gdwarf-4)
+target_link_libraries(marshmellow PRIVATE marshmellow)
+
 add_test_asm_target(reg_write)
 add_test_asm_target(reg_read)
 
