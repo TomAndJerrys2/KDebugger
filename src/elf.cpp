@@ -236,3 +236,12 @@ const kdebugger::elf * kdebugger::elf_collection::get_elf_by_path(std::filesyste
 
 	return nullptr;
 }
+
+const kdebugger::elf * kdebugger::elf_collection::get_elf_by_filename(std::string_view name) const {
+	for(auto & elf : m_Elves) {
+		if(elf->path().filename() == name)
+			return elf.get();
+	}
+
+	return nullptr;
+}
