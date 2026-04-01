@@ -218,3 +218,21 @@ kdebugger::elf::~elf() {
 	munmap(m_Data, m_FileSize);
 	close(m_Fd);
 }
+
+const kdebugger::elf * kdebugger::elf_collection::get_elf_containing_address(virt_addr address) const {
+	for(auto & elf : m_Elves) {
+		if(auto section = elf->get_section_containing_address(address); section)
+			return elf.get();
+	}
+
+	return nullptr;
+}
+
+const kdebugger::elf * kdebugger::elf_collection::get_elf_by_path(std::filesystem::path path) const {
+	for(auto & elf : m_Elves) {
+		if(elf->path() == path)
+			return elf.get();
+	}
+
+	return nullptr;
+}
