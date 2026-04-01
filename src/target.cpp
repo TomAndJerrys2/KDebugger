@@ -25,6 +25,14 @@ namespace {
 
 		auto tgt = std::unique_ptr<target>(new target(std::move(proc), std::move(obj)));
 		tgt->get_process().set_target(tgt.get());
+
+		auto entry_point = virt_addr {tgt->get_process().get_auxv()[AT_ENTRY]};
+		auto & entry_bp = tgt->create_address_breakpoint(entry_point, false, true);
+		entry_bp.install_hit_handler([target = tgt.get()] {
+			target->resolve_dynamic_linker_rendezvous();
+		});
+		
+		entry_bp.enable();
 		return tgt;
 	}
 
