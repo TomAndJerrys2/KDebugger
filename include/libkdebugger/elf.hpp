@@ -139,6 +139,18 @@ namespace kdebugger {
 			const elf * get_elf_by_path(std::filesystem::path path) const;
 			const elf * get_elf_by_filename(std::string_view name) const;
 	};
+
+	template <class F> void elf_collection::for_each(F f) {
+		for(auto & elf : m_Elves) {
+			f(*elf);
+		}
+	}
+
+	template <class F> void elf_collection::for_each(F f) {
+		for(const auto & elf : m_Elves) {
+			f(*elf);
+		}
+	}
 }
 
 
