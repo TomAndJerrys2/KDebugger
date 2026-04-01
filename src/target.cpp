@@ -241,4 +241,34 @@ namespace {
 
 		return "";
 	}
+
+	void kdebugger::target::resolve_dynamic_linker_rendezvous() {
+		if(dynamic_linker_rendezvous_address.addr())
+			return;
+
+		auto dynamic_section = m_MainElf->get_section(".dynamic");
+		auto dynamic_start = file_addr {*m_MainElf, dynamic_section.value()->sh_addr};
+		auto dynamic_size = dynamic_section.value()->sh_size;
+		auto dynamic_bytes = m_Process->read_memory(dynamic_start.to_virt_addr(), dynamic_size);
+
+		std::vector<Elf64_Dyn> dynamic_entries(dynamic_size / sizeof(Elf64_Dyn));
+		std::copy(dynamic_bytes.begin(), dynamic_bytes.end(), reinterpret_cast<std::byte *>(dynamic_entries.data()));
+
+		for(auto entry : dynamic_entries) {
+			if(entry.d_tag == DT_DEBUG) {
+				dynamic_linker_rendezvous_address = kdebugger::virt_addr {entry.d_un.d_ptr};
+				reload_dynamic_libraries();
+
+				auto debug_info = read_dynamic_linker_rendezvous();
+				auto debug_state_addr = kdebugger::virt_addr {debug_info->r_brk};
+				auto & debug_state_bp = create_address_breakpoint(debug_state_addr, false, true);
+				debug_state_bp.install_hit_handler([&] {
+					reload_dynamic_libraries();
+					return true;
+				});
+
+				debug_state_bp.enable();
+			}
+		}
+	}
 }
