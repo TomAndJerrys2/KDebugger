@@ -221,21 +221,30 @@ kdebugger::stop_reason kdebugger::process::wait_on_signal() {
             if(reason.trap_reason == trap_type::software_break 
                                   && m_BreakPointSites.contains_address(instr_begin)
                                   && m_BreakPointSites.get_by_address(instr_begin).is_enabled()) {
-	
-            else if(reason.trap_reason == trap_type::hardware_break) {
-                auto id = get_current_hardware_stoppoint();
-            }
-
-            if(id.index == 1)
-                m_WatchPoints.get_by_id(std::get<1>(id)).update_data();
-            }
-
-            else if(reason.trap_reason == trap_type::syscall) {
-                reason = mabye_resume_from_syscall(reason);
-            }		
-        
             set_pc(instr_begin);
+            auto & bp = m_BreakPointSites.get_by_address(instr_begin);
+
+            if(bp.m_Parent) {
+                bool should_restart = bp.m_Parent->notify_hit();
+
+                if(should_restart) {
+                    resume();
+                    return wait_on_signal();
+                }
+            }
         }
+
+        else if(reason.trap_reason == trap_type::hardware_break) {
+            auto id = get_current_hardware_stoppoint();
+        }
+
+        if(id.index == 1)
+            m_WatchPoints.get_by_id(std::get<1>(id)).update_data();
+        }
+
+        else if(reason.trap_reason == trap_type::syscall) {
+            reason = mabye_resume_from_syscall(reason);
+        }		
 
         if(m_Target)
             m_Target->notify_stop(reason);
