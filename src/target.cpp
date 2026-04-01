@@ -43,6 +43,8 @@ namespace {
 
 		auto tgt = std::unique_ptr<target>(new target(std::move(proc), std::move(obj)));
 		tgt->get_process().set_target(tgt.get());
+
+		tgt->resolve_dynamic_linker_rendezvous();
 		return tgt; 
 	} 
 
