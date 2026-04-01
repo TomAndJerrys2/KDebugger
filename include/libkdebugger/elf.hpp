@@ -118,6 +118,27 @@ namespace kdebugger {
 
 			~elf();
 	}
+
+	class elf_collection {
+		
+		private:
+			std::vector<std::unique_ptr<elf>> m_Elves;
+
+		public:
+			void push(std::unique_ptr<elf> elf) {
+				m_Elves.push_back(std::move(elf));
+			}
+
+			template <class F>
+			void for_each(F f);
+
+			template <class F>
+			void for_each(F f) const;
+
+			const elf * get_elf_containing_address(virt_addr address) const;
+			const elf * get_elf_by_path(std::filesystem::path path) const;
+			const elf * get_elf_by_filename(std::string_view name) const;
+	};
 }
 
 
