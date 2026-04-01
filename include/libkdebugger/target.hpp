@@ -18,6 +18,11 @@ namespace kdebugger {
 
 			stoppoint_collection<breakpoint> m_Breakpoints();
 
+			virt_addr dynamic_linker_rendezvous_address;
+
+			void resolve_dynamic_linker_rendezvous();
+			void resolve_dynamic_libraries();
+
 			target(std::unique_ptr<process> proc, std::unique_ptr<elf> obj) 
 				: m_Process {std::move(proc)}, m_Elf {std::move(obj)}, m_Stack{this} {}
 
@@ -84,5 +89,6 @@ namespace kdebugger {
 			kdebugger::stop_reason run_until_address(virt_addr address);
 
 			std::string function_name_at_address(virt_addr address) const;
-		};
+			std::optional<r_debug> read_dynamic_linker_rendezvous() const;
+	};
 }
