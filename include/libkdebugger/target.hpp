@@ -16,6 +16,9 @@ namespace kdebugger {
 			std::unique_ptr<process> m_Elf;
 			stack m_Stack;
 
+			elf_collection m_Elves;
+			elf * m_MainElf;
+
 			stoppoint_collection<breakpoint> m_Breakpoints();
 
 			virt_addr dynamic_linker_rendezvous_address;
@@ -25,6 +28,10 @@ namespace kdebugger {
 
 			target(std::unique_ptr<process> proc, std::unique_ptr<elf> obj) 
 				: m_Process {std::move(proc)}, m_Elf {std::move(obj)}, m_Stack{this} {}
+
+			target(std::unique_ptr<process> proc, std::unique_ptr<elf> obj)
+				: m_Process {std::move(proc)}, m_Stack {this}, m_MainElf {obj.get()},
+					m_Elves.push(std::move(obj));
 
 		public:
 			target() = delete;
@@ -90,5 +97,21 @@ namespace kdebugger {
 
 			std::string function_name_at_address(virt_addr address) const;
 			std::optional<r_debug> read_dynamic_linker_rendezvous() const;
+	
+			elf_collection & get_elves() {
+				return m_Elves;
+			}
+
+			const elf_collection & get_elves() const {
+				return m_Elves;
+			}
+
+			elf & get_main_elf() {
+				return *m_MainElf;
+			}
+
+			const elf & get_main_elf() const {
+				return *m_MainElf;
+			}
 	};
 }
