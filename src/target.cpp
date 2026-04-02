@@ -271,4 +271,17 @@ namespace {
 			}
 		}
 	}
+
+	std::vector<kdebugger::line_table::iterator> kdebugger::target::get_line_entries_by_line(std::filesystem::path path, std::size_t line) const {
+		std::vector<kdebugger::line_table::iterator> entries;
+		
+		m_Elves.for_each([&] (auto & elf) {
+			for(auto & cu : elf.get_dwarf().compile_units()) {
+				auto new_entries = cu->lines().get_entries_by_line(path, line);
+				entries.insert(entries.end(), new_entries.begin(), new_entries.end());
+			}
+		});
+
+		return entries;
+	}
 }

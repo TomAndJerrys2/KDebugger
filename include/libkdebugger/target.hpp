@@ -113,5 +113,7 @@ namespace kdebugger {
 			const elf & get_main_elf() const {
 				return *m_MainElf;
 			}
+
+			std::vector<line_table::iterator> get_line_entries_by_line(std::filesystem::path path, std::size_t line) const;
 	};
 }
