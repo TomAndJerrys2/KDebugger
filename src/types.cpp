@@ -22,3 +22,11 @@ kdebugger::file_addr kdebugger::virt_addr::to_file_addr(const elf & obj) const {
 
 	return file_addr { obj, m_Addr - obj.load_bias().addr() };
 }
+
+kdebugger::file_addr kdebugger::virt_addr::to_file_addr(const elf_collection & elves) const {
+	auto obj = elves.get_elf_containing_address(*this);
+	if(!obj)
+		return file_addr{};
+
+	return to_file_addr(*obj);
+}

@@ -74,6 +74,8 @@ namespace kdebugger {
 			bool operator >= (const virt_addr & rhs) const noexcept {
 				return m_Addr >= rhs.m_Addr;
 			}
+
+			file_addr to_file_addr(const elf_collection & elves) const;
 	};
 	
 	// span class for a pointer with a known length, similar to std::span
