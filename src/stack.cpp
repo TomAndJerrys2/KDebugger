@@ -71,7 +71,7 @@ void kdebugger::stack::unwind() {
 			regs.read_by_id_as<std::uint64_t>(register_id::rip) - 1;
 		};
 
-		file_pc = virt_pc.to_file_addr(m_Target->get_elf());
+		file_pc = virt_pc.to_file_addr(m_Target->get_elves());
 		elf = file_pc.elf_file();
 	}
 }

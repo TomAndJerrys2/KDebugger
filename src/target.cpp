@@ -49,7 +49,7 @@ namespace {
 	} 
 
 	kdebugger::file_addr kdebugger::target::get_pc_file_address() const {
-		return m_Process->get_pc().to_file_addr(*m_Elf);
+		return m_Process->get_pc().to_file_addr(*m_Elves);
 	}
 
 	void kdebugger::target::notify_stop(const kdebugger::stop_reason & reason) {
@@ -223,7 +223,7 @@ namespace {
 	}
 
 	std::string kdebugger::target::function_name_at_address(virt_addr address) const {
-		auto file_address = address.to_file_addr(*m_Elf);
+		auto file_address = address.to_file_addr(m_Elves);
 		auto obj = file_address.elf_file();
 		if(!obj)
 			return "";

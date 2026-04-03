@@ -84,7 +84,7 @@ void kdebugger::function_breakpoint::resolve() {
 namespace {
 	void kdebugger::line_breakpoint::resolve() {
 		auto & dwarf = m_Target->get_elf().get_dwarf();
-		auto entries = cu->lines().get_entries_by_line(m_File, m_Line);
+		auto entries = m_Target->get_entries_by_line(m_File, m_Line);
 
 		for(auto entry : entries) {
 			auto & dwarf = entry->address.elf_file()->get_dwarf();
