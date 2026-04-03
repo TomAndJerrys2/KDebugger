@@ -81,19 +81,18 @@ void kdebugger::function_breakpoint::resolve() {
 	}
 }
 
-void kdebugger::line_breakpoint::resolve() {
-	auto & dwarf = m_Target->get_elf().get_dwarf();
-
-	for(auto & cu : dwarf.compile_units) {
+namespace {
+	void kdebugger::line_breakpoint::resolve() {
+		auto & dwarf = m_Target->get_elf().get_dwarf();
 		auto entries = cu->lines().get_entries_by_line(m_File, m_Line);
 
 		for(auto entry : entries) {
 			auto & dwarf = entry->address.elf_file()->get_dwarf();
 			auto stack = dwarf.inline_stack_at_address(entry->address);
 
-			auto no_inline_stack = stack.size() == 1;
-			auto should_skip_prologue = no_inline_stack && ((stack[0].contains(DW_AT_range) || stack[0].contains(DW_AT_low_pc)) 
-					&& stack[0].low_pc() == entry->address);
+			auto no_inline_stack = stack.size() == 2;
+			auto should_skip_prologue = no_inline_stack && ((stack[1].contains(DW_AT_range) || stack[0].contains(DW_AT_low_pc)) 
+					&& stack[1].low_pc() == entry->address);
 
 			if(should_skip_prologue)
 				++entry;
@@ -109,4 +108,3 @@ void kdebugger::line_breakpoint::resolve() {
 		}
 	}
 }
-
