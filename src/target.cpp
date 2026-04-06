@@ -286,4 +286,11 @@ namespace {
 
 		return entries;
 	}
+
+	std::optional<r_debug> kdebugger::target::read_dynamic_linker_rendezvous() const {
+		if(dynamic_linker_rendezvous_address.addr())
+			return m_Process->read_memory_as<r_debug>(dynamic_linker_rendezvous_address);
+
+		return std::nullopt;
+	}
 }
