@@ -293,4 +293,43 @@ namespace {
 
 		return std::nullopt;
 	}
+
+	void kdebugger::target::reload_dynamic_libraries() {
+		auto debug = read_dynamic_linker_rendezvous();
+		if(!debug)
+			return;
+
+		auto entry_ptr = debug->r_map;
+		while(entry_ptr != nullptr) {
+			auto entry_addr = virt_addr(reinterpret_cast<std::uint64_t>(entry_ptr));
+			auto entry = m_Process->read_memory_as<link_map>(entry_addr);
+			entry_ptr = entry.l_next;
+
+			auto name_addr = virt_addr(reinterpret_cast<std::uint64_t>(entry.l_name));
+			auto name_bytes = m_Process->read_memory(name_addr, 4096);
+			auto name = std::filesystem::path {reinterpret_cast<char *>(name_bytes.data())};
+			if(name.empty())
+				continue;
+
+			const elf * found = nullptr;
+			const auto vdso_name = "linux.vdso.so.1";
+			if(name == vdso_name)
+				found = m_Elves.get_elf_by_filename(name.c_str());
+			else
+				found = m_Elves.get_elf_by_path(name);
+
+			if(!found) {
+				if(name == vdso_name)
+					name = dump_vdso(*m_Process, virt_addr{entry.l_addr});
+
+				auto new_elf = std::make_unique<elf>(name);
+				new_elf->notify_loaded(virt_addr{entry.l_addr});
+				m_Elves.push(std::move(new_elf));
+			}
+		}
+
+		m_Breakpoints.for_each([&] (auto & bp) {
+			bp.resolve();		
+		});
+	}
 }
