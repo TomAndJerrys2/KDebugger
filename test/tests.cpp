@@ -792,3 +792,20 @@ TEST_CASE("Stack unwinding", "[unwind]") {
 		REQUIRE(frames[i].func_die.name().value() == expected_names[i]);
 	}
 }
+
+// in case - loading shared libraries works correctly
+TEST_CASE("Shared library tracing works", "[dynlib]") {
+	auto dev_null = open("/dev/null", O_WRONGLY);
+	auto target = target::launch("targets/marshmellow", dev_null);
+	auto & proc = target->get_process();
+
+	target->create_function_breakpoint("libmarshmellow_test").enable();
+	proc.resume();
+	proc.wait_on_signal();
+	
+	REQUIRE(target->get_stack().frames().size() == 2);
+	REQUIRE(target->get_stack().frames()[0].func_die.name().value() == "libmarshmellow_test");
+	REQUIRE(target->get_stack().frames()[1].func_die.name().value() == "main");
+	REQUIRE(target->get_pc_file_address().elf_file()->path().filename() == "libmeow.so");
+	close(dev_null);
+}
