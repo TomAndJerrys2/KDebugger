@@ -1,11 +1,28 @@
 #include <csignal>
 #include <optional>
 #include <cxxabi.h>
+#include <fstream>
 
 #include <libkdebugger/target.hpp>
 #include <libkdebugger/types.hpp>
 #include <libkdebugger/disassembler.hpp>
 #include <libkdebugger/bit.hpp>
+
+namespace {
+	std::filesystem::path dump_vdso(const kdebugger::process & proc, kdebugger::virt_addr address) {
+		char tmp_dir[] = "tmp/kdebugger-XXXXXX";
+		mkdtemp(tmp_dir);
+		
+		auto vdso_dump_path = std::filesystem::path(tmp_dir) / "linux-vdso.so.1";
+		std::ofstream vdso_dump(vdso_dump_path, std::ios::binary);
+		auto vdso_header = proc.read_memory_as<Elf64_Ehdr>(address);
+		auto vdso_size = vdso_header.e_shoff + vdso_header.e_shentsize * vdso_header.e_shnum;
+		auto vdso_bytes = proc.read_memory(address, vdso_size);
+
+		vdso_dump.write(reinterpret_cast<const char *>(vdso_bytes.data()), vdso_bytes.size());
+		return vdso_dump_path;
+	}
+}
 
 namespace {
 
