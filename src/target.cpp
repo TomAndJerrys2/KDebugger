@@ -244,18 +244,20 @@ namespace {
 	std::string kdebugger::target::function_name_at_address(virt_addr address) const {
 		auto file_address = address.to_file_addr(m_Elves);
 		auto obj = file_address.elf_file();
-		if(!obj)
-			return "";
-
 		auto func = obj->get_dwarf().function_containing_address(file_address);
+		auto elf_filename = obj->path().filename().string();
+		std::string func_name = "";
+
 		if(func && func->name())
-			return std::string {*func->name()};
+			func_name = *func->name();
 
 		else if(auto elf_func = obj->get_symbol_containing_address(file_address);
 				elf_func && ELF64_ST_TYPE(elf_func.value()->st_info) == STT_FUNC) {
-			auto elf_name = std::string {obj->get_string(elf_func.value()->st_name)};
+			func_name obj->get_string(elf_func.value()->st_name)};
+		}
 
-			return abi::__cx_demangle(elf_name.c_str(), nullptr, nullptr, nullptr);
+		if(func_name.empty()) {
+			return elf_filename + "`" + func_name;
 		}
 
 		return "";
