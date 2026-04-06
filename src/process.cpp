@@ -72,8 +72,8 @@ namespace {
     }
 
     void set_ptrace_options(pid_t pid) {
-        if(ptrace(PTRACE_SETOPTIONS, pid, nullptr, PTRACE_O_PTRACESYSGOOD) < 0)
-            kdebugger::error::send_errno("Failed to set TRACESYSGOOD option");
+        if(ptrace(PTRACE_SETOPTIONS, pid, nullptr, PTRACE_O_TRACECLONE | PTRACE_O_PTRACESYSGOOD) < 0)
+            kdebugger::error::send_errno("Failed to set TRACESYSGOOD and TRACECLONE option");
     }
 }
 

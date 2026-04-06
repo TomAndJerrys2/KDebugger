@@ -736,7 +736,7 @@ TEST_CASE("Source-level stepping", "[target]") {
 	proc.resume();
 	proc.wait_on_signal();
 
-	auto pc = proc,get_pc();
+	auto pc = proc.get_pc();
 	REQUIRE(target->function_name_at_address(pc) == "main");
 
 	target->step_over();
