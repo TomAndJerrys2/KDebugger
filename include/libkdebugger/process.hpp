@@ -120,6 +120,13 @@ namespace kdebugger {
         pit_t tid;
     };
 
+    struct thread_state {
+        pid_t tid;
+        registers regs;
+        stop_reason reason;
+        process_state state = process_state::stopped;
+    };
+
 	class process {
 		
 		private:	
@@ -162,6 +169,9 @@ namespace kdebugger {
 
             // target for inline stack tracking
             target * m_Target = nullptr;
+
+            std::unordered_map<pid_t, thread_state> m_Threads;
+            pid_t m_CurrentThread;
 
 		public:
 
@@ -279,6 +289,18 @@ namespace kdebugger {
 
             breakpoint_site & create_breakpoint_site(breakpoint * parent, breakpoint_site::id_type id, virt_addr address, 
                     bool hardware = false, bool internal = false);
+
+            void set_current_thread(pid_t tid) {
+                m_CurrentThread = tid;
+            }
+
+            pid_t current_thread() const {
+                return m_CurrentThread;
+            }
+
+            std::unordered_map<pid_t, thread_state> & thread_states() const {
+                return m_Threads;
+            }
 
 			~process();
 	};
