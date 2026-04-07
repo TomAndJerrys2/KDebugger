@@ -597,4 +597,10 @@ kdebugger::breakpoint_site & kdebugger::process::create_breakpoint_site(breakpoi
     return m_BreakPointSites.push(std::unique_ptr<breakpoint_site> (new breakpoint_site(parent, id, *this, address, hardware, internal)));
 }
 
-
+void kdebugger::process::populate_exisiting_threads() {
+    auto path = "/proc/" + std::to_string(m_Pid) + "/task";
+    for(auto & entry : std::filesystem::directory_iterator(path)) {
+        auto tid = std::stoi(entry.path().filename().string());
+        m_Threads.emplace(tid, thread_state {tid, registers(*this, tid)});
+    }
+}

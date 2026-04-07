@@ -148,9 +148,13 @@ namespace kdebugger {
 			// collection of stop points in the breakpoint site
 			stoppoint_collection<breakpoint_site> m_BreakPointSites;
 
+            void populate_exisiting_threads();
+
 			process(pid_t pid, bool terminate, bool is_attached) : m_Pid {pid},
 				m_Terminate {terminate}, m_Attached {is_attached},
-			       		m_Registers {new registers(*this)} {}
+                    m_CurrentThread {pid} {
+                populate_exisiting_threads(); 
+            }
 
             // private method for setting hardware breakpoints
             int set_hardware_stoppoint(virt_addr address, stoppoint_mode mode, std::size_t size);
