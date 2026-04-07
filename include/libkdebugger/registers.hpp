@@ -23,8 +23,9 @@ namespace kdebugger {
 
 			std::vector<std::size_t> m_Undefined;
 			virt_addr m_Cfa;
+            pid_t m_Tid;
 
-			registers(process & proc) : m_Process {proc} {} 
+			registers(process & proc, pid_t tid) : m_Process {proc}, m_Tid {tid} {} 
 
 		public:
 			// delete default constructor

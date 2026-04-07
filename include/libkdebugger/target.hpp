@@ -9,7 +9,15 @@
 #include <libkdebugger/stack.hpp>
 
 namespace kdebugger {
-	class target {
+    
+    struct thread {
+        thread(thread_state * state, stack frames) : state {state}, frames {std::move(frames)} {}
+    
+        thread_state * state;
+        stack frames;
+    };
+
+    class target {
 		
 		private:
 			std::unique_ptr<process> m_Process;
@@ -19,12 +27,14 @@ namespace kdebugger {
 			elf_collection m_Elves;
 			elf * m_MainElf;
 
+            std::unordered_map<pid_t, threads> m_Threads;
+
 			stoppoint_collection<breakpoint> m_Breakpoints();
 
 			virt_addr dynamic_linker_rendezvous_address;
 
 			void resolve_dynamic_linker_rendezvous();
-			void resolve_dynamic_libraries();
+            void resolve_dynamic_libraries();
 
 			target(std::unique_ptr<process> proc, std::unique_ptr<elf> obj) 
 				: m_Process {std::move(proc)}, m_Elf {std::move(obj)}, m_Stack{this} {}
@@ -115,5 +125,15 @@ namespace kdebugger {
 			}
 
 			std::vector<line_table::iterator> get_line_entries_by_line(std::filesystem::path path, std::size_t line) const;
-	};
+	
+            std::unordered_map<pid_t, thread> & threads() {
+                return m_Threads;
+            }
+
+            const std::unordered_map<pid_t, thread> & threads() const {
+                return m_Threads;
+            }
+
+            void notify_thread_lifecycle_event(const kdebugger::stop_reason & reason);
+    };
 }
