@@ -180,8 +180,11 @@ void sdb::process::resume() {
 
 // produce a stop reason for why the process
 // was stopped by an exit code or signal
-kdebugger::stop_reason::stop_reason(int wait_status) {
+kdebugger::stop_reason::stop_reason(pid_t tid, int wait_status) : tid {tid} {
 	
+    if((wait_status >> 8) == (SIGTRAP | (PTRACE_EVENT_CLONE << 8)))
+        trap_reason = trap_type::clone;
+
 	if(WIFEXITED(wait_status)) {
 		reason = process_state::exited;
 		info = WEXITSTATUS(wait_status);
