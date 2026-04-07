@@ -37,7 +37,14 @@ namespace kdebugger {
             void resolve_dynamic_libraries();
 
 			target(std::unique_ptr<process> proc, std::unique_ptr<elf> obj) 
-				: m_Process {std::move(proc)}, m_Elf {std::move(obj)}, m_Stack{this} {}
+                : m_Process {std::move(proc)}, m_MainElf {std::move(obj)} {
+                m_Elves.push(std::move(obj));
+                auto pid = m_Process->pid();
+
+                for(auto & [tid, state] : m_Process->thread_states()) {
+                    m_Threads.emplace(tid, thread(&state, stack {this, tid}));
+                }
+            }
 
 			target(std::unique_ptr<process> proc, std::unique_ptr<elf> obj)
 				: m_Process {std::move(proc)}, m_Stack {this}, m_MainElf {obj.get()},
