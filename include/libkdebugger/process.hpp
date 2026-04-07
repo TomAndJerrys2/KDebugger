@@ -137,7 +137,7 @@ namespace kdebugger {
 
             bool expecting_syscall_exit {false};
 
-			void read_all_registers() const;
+			void read_all_registers(pid_t tid);
 
 			// holds the address of our registers
 			std::unique_ptr<registers> m_Registers;
@@ -167,7 +167,7 @@ namespace kdebugger {
             void augment_stop_reason(stop_reason & reason);
 
             // reason for resuming if the syscall isnt one we have requested tracing for
-            kdebugger::stop_reason mabye_resume_from_syscall(const stop_reason & reason);
+            bool mabye_resume_from_syscall(const stop_reason & reason);
 
             syscall_catch_policy m_SyscallCatchPolicy = syscall_catch_policy::catch_none();
 
@@ -185,15 +185,15 @@ namespace kdebugger {
 			process() = delete;
 
 			/* registers extension --- */
-			registers & get_registers() { return *m_Registers; }
-			const registers & get_registers() { return *m_Registers; }
-			
+			registers & get_registers(std::optional<pid_t> otid = std::nullopt);
+            const registers & get_registers(std::optional<pid_t> otid = std::nullopt);
+
 			// write to an equal sized register, given an offset
-			void write_user_area(std::size_t offset, std::uint64_t data) const;
+			void write_user_area(std::size_t offset, std::uint64_t data, std::optional<pid_t> otid = std::nullopt) const;
 			
 			// writing to all the GPRs and FPRs at once
-			void write_fgprs(const user_fpregs_struct & fprs);
-			void write_gprs(const user_regs_struct & gprs);
+			void write_fgprs(const user_fpregs_struct & fprs, std::optional<pid_t> otid = std::nullopt);
+			void write_gprs(const user_regs_struct & gprs, std::optional<pid_t> otid = std::nullopt);
 
 			// delete copy constructor
 			process(const process &) = delete;
@@ -207,6 +207,8 @@ namespace kdebugger {
 					std::optional<int> stdout_replacement = std::nullopt);
 			// attach to a currently running PID, return a static unique instance of ID
 			static std::unique_ptr<process> attach(const pid_t pid);
+
+            void wait_on_signal(pid_t to_await);
 
 			kdebugger::stop_reason step_instruction();
 			kdebugger::stop_reason wait_on_signal() const;
@@ -229,29 +231,23 @@ namespace kdebugger {
 			}
 
 			// resume the current process if halted
-			void resume();
+			void resume(std::optional<pid_t> otid = std::nullopt);
 
 			pid_t pid() const {
 				return m_Pid;
 			}
 	
 			// helper function for getting the program counter
-			virt_addr get_pc() const {
-				return virt_addr {
-					get_registers().read_by_id_as<std::uint64_t> (register_id::rip)
-				};
-			}
+			virt_addr get_pc(std::optional<pid_t> otid = std::nullopt) const;
 
 			// helper function for setting the program counter
-			void set_pc(virt_addr address) {
-				get_registers().write_by_id(register_id::rip, address.addr());
-			}
+			void set_pc(virt_addr address, std::optional<pid_t> otid = std::nullopt);
 			
             // public method for setting hardware breakpoints at a virtual address
             int set_hardware_breakpoint(breakpoint_site::id_type id, virt_addr address);
 
             // evaluates the current location of a coressponding breakpoint or watchpoint
-            std::variant<breakpoint_site::id_type, watchpoint::id_type> get_current_hardware_stoppoint() const;
+            std::variant<breakpoint_site::id_type, watchpoint::id_type> get_current_hardware_stoppoint(std::optional<pid_t> otid = std::nullopt) const;
 
 			// iterating over breakpoint sites - returns memory location
 			breakpoint_site & create_breakpoint_site(virt_addr address, bool hardware = false, bool internal = false);

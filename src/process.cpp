@@ -604,3 +604,20 @@ void kdebugger::process::populate_exisiting_threads() {
         m_Threads.emplace(tid, thread_state {tid, registers(*this, tid)});
     }
 }
+
+kdebugger::virt_addr kdebugger::process::get_pc(std::optional<pid_t> otid) const {
+    return virt_addr {get_registers(otid).read_by_id_as<std::uint64_t>(register_id::rip)};
+}
+
+void kdebugger::process::set_pc(virt_addr address, std::optional<pid_t> otid) {
+    get_registers(otid).write_by_id(register_id::rip, address.addr());
+}
+
+kdebugger::registers & kdebugger::process::get_registers(std::optional<pid_t> otid) {
+    auto tid = otid.value_or(m_CurrentThread);
+    return m_Threads.at(tid).regs;
+}
+
+const kdebugger::registers & kdebugger::process::get_registers(std::optional<pid_t> otid) const {
+    return const_cast<process *> (this)->get_registers(otid);
+}

@@ -26,13 +26,14 @@ namespace kdebugger {
 			std::uint32_t m_InlineHeight {0};
 			std::vector<stack_frame> m_Frames;
 			std::size_t m_CurrentFrame {0};
+            pid_t m_Tid;
 
 			void create_inline_stack_frames(const kdebugger::registers & regs, const std::vector<kdebugger::die> inline_stack, file_addr pc);
 
 			void create_base_frame(const registers & regs, const std::vector<kdebugger::die> inline_stack, file_addr pc, bool inlined);
 
 		public:
-			stack(target * tgt) : m_Target {tgt} {}
+			stack(target * tgt, pid_t tid) : m_Target {tgt}, m_Tid {tid} {}
 			void reset_inline_height();
 			std::vector<kdebugger::die> inline_stack_at_pc() const;
 			
