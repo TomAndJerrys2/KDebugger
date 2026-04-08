@@ -151,30 +151,32 @@ std::unique_ptr<kdebugger::process> kdebugger::process::attach(const pid_t pid) 
 }
 
 // resumes a process being held
-void sdb::process::resume() {
-	
-	auto pc = get_pc();
+void kdebugger::process::resume(std::optional<pid_t> otid) {
+	auto tid = otid.value_or(m_CurrentThread);
+	auto pc = get_pc(tid);
+
 	if(m_BreakPointSites.enable_stoppoint_at_address(pc)) {
 		auto & bp = m_BreakPoinSites.get_by_address(pc);
 		bp.disable();
 
-		if(ptrace(PTRACE_SINGLESTEP, m_Pid, nullptr, nullptr) < 0)
+		if(ptrace(PTRACE_SINGLESTEP, tid, nullptr, nullptr) < 0)
 			error::send_errno("Failed to single-step!");
 
 		int wait_status;
-		if(waitpid(m_Pid, &wait_status, 0) < 0)
+		if(waitpid(tid, &wait_status, 0) < 0)
 			error::send_errno("waitpid failed");
 
 		bp.enable();
 	}
 
-    auto request = (m_SyscallCatchPolicy.get_mode == syscall_catch_policy::mode::none ?
-        PTRACE_CONT : PTRACE_SYSCALL);
+    auto request = (m_SyscallCatchPolicy.get_mode == 
+            syscall_catch_policy::mode::none ? PTRACE_CONT : PTRACE_SYSCALL);
 
-	if(ptrace(request, m_Pid, nullptr, nullptr) < 0) {
+	if(ptrace(request, tid, nullptr, nullptr) < 0) {
 		error::send_errno("Could not resume Process");
 	}
-
+    
+    m_Threads.at(tid).state = process_state::running;
 	m_State = process_state::running;
 }
 
