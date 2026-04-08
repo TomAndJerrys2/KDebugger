@@ -464,6 +464,15 @@ void kdebugger::process::clear_hardware_stoppoint(int index) {
     auto masked = control & ~clear_maskl;
 
     get_registers().write_by_id(register_id::dr7, masked);
+
+    for(auto & [tid, _] : m_Threads) {
+        if(tid == m_CurrentThrea)
+            continue;
+
+        auto & other_regs = get_registers(tid);
+        other_regs.write_by_id(static_cast<register_id>(id), 0);
+        other_regs.write_by_id(register_id::dr7, masked);
+    }
 }
 
 // sets a watchpoint as a hardware breakpoint
