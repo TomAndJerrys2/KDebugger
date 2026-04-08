@@ -336,9 +336,10 @@ kdebugger::breakpoint_site & kdebugger::process::create_breakpoint_site(virt_add
 }
 
 // for stepping over instructions using single step
-kdebugger::stop_reason kdebugger::process::step_instruction() {
-	std::optional<breakpoint_site *> to_reenable;
-	auto pc = get_pc();
+kdebugger::stop_reason kdebugger::process::step_instruction(std::optional<pid_t> otid) {
+	auto tid = otid.value_or(m_CurrentThread);
+    std::optional<breakpoint_site *> to_reenable;
+	auto pc = get_pc(tid);
 
 	if(m_BreakPointSites.enable_stoppoint_at_address(pc)) {
 		auto & bp = m_BreakPointSites.get_by_address(pc);
@@ -346,10 +347,10 @@ kdebugger::stop_reason kdebugger::process::step_instruction() {
 		to_reenable = &bp;
 	}
 
-	if(ptrace(PTRACE_SINGLESTEP, m_Pid, nullptr, nullptr) < 0)
+	if(ptrace(PTRACE_SINGLESTEP, tid, nullptr, nullptr) < 0)
 		error::send_errno("Could not single step");
 
-	auto reason = wait_on_signal();
+	auto reason = wait_on_signal(tid);
 	if(to_reenable)
 		to_reenable.value()->enable();
 
@@ -439,8 +440,17 @@ int kdebugger::process::set_hardware_stoppoint(virt_addr address, stoppoint_mode
     auto masked = control & ~clear_mask;
 
     masked |= enable_bit | mode_bits | size_bits;
-
     regs.write_by_id(register_id::dr7, masked);
+        
+    for(auto & [tid, _] : m_Threads) {
+        if(tid == m_CurrentThread)
+            continue;
+
+        auto & other_regs = get_registers(tid);
+        other_regs.write_by_id(static_cast<register_id>(id), address.addr());
+        other_regs.write_by_id(register_id::dr7, masked);
+    }
+
     return free_space;
 }
 
@@ -474,13 +484,15 @@ kdebugger::watchpoint & kdebugger::process::create_watchpoint(cirt_addr address,
 }
 
 void kdebugger::process::augment_stop_reason(stop_reason & reason) {
+    auto tid = reason.tid;
     siginfo_t info;
-    if(ptrace(PTRACE_GETSIGINFO, m_Pid, nullptr, &info) < 0)
+    
+    if(ptrace(PTRACE_GETSIGINFO, tid, nullptr, &info) < 0)
         error::send_errno("Failed to get signal info");
 
     if(reason.info == (SIGTRAP | 0x80)) {
         auto & sys_info = reason.syscall_info.emplace();
-        auto & regs = get_registers();
+        auto & regs = get_registers(tid);
 
         if(expecting_syscall_exit) {
             sys_info.entry = false;
@@ -534,8 +546,8 @@ void kdebugger::process::augment_stop_reason(stop_reason & reason) {
 }
 
 std::variant<kdebugger::breakpoint_site::id_type, kdebugger::watchpoint::id_type>
-kdebugger::process::get_current_hardware_stoppoint() const {
-    auto & regs = get_registers();
+kdebugger::process::get_current_hardware_stoppoint(std::optional<pid_t> otid) const {
+    auto & regs = get_registers(otid);
     auto status = regs.read_by_id_as<std::uint64_t>(register_id::dr6);
     auto index = __builtin_ctzll(status);
 
@@ -555,18 +567,17 @@ kdebugger::process::get_current_hardware_stoppoint() const {
     }
 }
 
-kdebugger::stop_reason kdebugger::process::mabye_resume_from_syscall(const stop_reason & reason) {
+bool kdebugger::process::mabye_resume_from_syscall(const stop_reason & reason) {
     if(m_SyscallCatchPolicy.get_mode() == syscall_catch_policy::mode::some) {
         auto & to_catch = m_SycallCatchPolicy.get_to_catch();
         auto found = std::find(begin(to_catch), end(to_catch), reason.syscall_info->id);
 
         if(found == end(to_catch)) {
-            resume();
-            return wait_on_signal();
+            return true;
         }
     }
 
-    return reason;
+    return false;
 }
 
 std::unordered_map<int, std::uint64_t> kdebugger::process::get_auxv() const {
