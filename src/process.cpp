@@ -81,7 +81,7 @@ namespace {
 std::unique_ptr<process> process::launch(const std::filesystem::path path, 
 				bool debug, std::optional<int> stdout_replacement) {
 	// set close_on_exec to be true --> pipe.hpp/pipe.cpp
-	pipe channel(true)
+	pipe channel(true);
 
 	pid_t pid {};
 	if((pid = fork()) < 0) {
@@ -304,21 +304,21 @@ void kdebugger::process::read_all_registers() const {
 }	
 
 // write to a register given a similar user area
-void kdebugger::process::write_user_area(std::size_t offset, std::uint64_t data) {
-	
-	if(ptrace(PTRACE_POKEUSER, m_Pid, offset, data) < 0)
+void kdebugger::process::write_user_area(std::size_t offset, std::uint64_t data, std::optional<pid_t> otid) {
+    auto tid = otid.value_or(m_CurrentThread);
+    if(ptrace(PTRACE_POKEUSER, m_Pid, offset, data) < 0)
 		error::send_errno("Could not write to user area");
 }
 
 // write to all the fprs in the x87 space
-void kdebugger::process::write_fprs(const user_fpregs_struct & fprs) {
-	
-	if(ptrace(PTRACE_SETFPREGS, m_Pid, nullptr, &fprs) < 0)
+void kdebugger::process::write_fprs(const user_fpregs_struct & fprs, std::optional<pid_t> otid) {
+	auto tid = otid.value_or(m_CurrentThread);
+    if(ptrace(PTRACE_SETFPREGS, m_Pid, nullptr, &fprs) < 0)
 		error::send_errno("Could not write floating point registers");
 }
 
-void kdebugger::process::write_gprs(const user_regs_struct & gprs) {
-	
+void kdebugger::process::write_gprs(const user_regs_struct & gprs, std::optional<pid_t> otid) {
+	auto tid = otid.value_or(m_CurrentThread);
 	if(ptrace(PTRACE_SETREGS, m_Pid, nullptr, &gprs) < 0)
 		error::send_errno("Could not write geenral purpose registers");
 }
