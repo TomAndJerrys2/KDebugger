@@ -114,12 +114,12 @@ KDebugger/
 4. Software and Hardware Breakpoint functionality ✅
 5. Extended Watchpoint and Catchpoint functionality around Systemcalls ✅
 6. Signal and Error handling based on unit testing (via Catch2) ✅
-7. Multi-Threaded Architecture ⚠️
+7. Multi-Threaded Architecture ✅
 8. In-Depth Debug Information and Improvement statistics ✅
 9. Line Tables and Source-Level breakpoints ✅
-10. Stack Frame & Unwinding unique view ⚠️
-11. Internal library observation ⚠️
-12. Linking and Encoding information ⚠️
+10. Stack Frame & Unwinding unique view ✅
+11. Internal library observation ✅
+12. Linking and Encoding information ✅
 13. Profiler and Code-Generation Optimization Techniques ⚠️
 14. Custom Disassembler and Profiler Integration (Big Goal) ⚠️
 15. Flame Graph Support and Logging ⚠️
