@@ -54,18 +54,22 @@ given branches for people to see how these conversions work
 
 ```
 KDebugger/
-├── .gitignore
+├── .github/
+│   └── workflows/
+│       └── cmake-single-platform.yml
 ├── build/
 │   ├── Makefile
 │   └── README.md
-├── CMakeLists.txt
 ├── include/
 │   └── libkdebugger/
-│       ├── bit.hpp
-│       ├── breakpoint_site.hpp
 │       ├── detail/
 │       │   └── registers.inc
+│       ├── bit.hpp
+│       ├── breakpoint_site.hpp
+│       ├── breakpoint.hpp
 │       ├── disassembler.hpp
+│       ├── dwarf.hpp
+│       ├── elf.hpp
 │       ├── error.hpp
 │       ├── libkdebugger.hpp
 │       ├── parse.hpp
@@ -73,35 +77,58 @@ KDebugger/
 │       ├── process.hpp
 │       ├── register_info.hpp
 │       ├── registers.hpp
+│       ├── stack.hpp
 │       ├── stoppoint_collection.hpp
+│       ├── syscalls.hpp
+│       ├── target.hpp
 │       ├── types.hpp
 │       └── watchpoint.hpp
-├── LICENSE
-├── README.md
 ├── src/
+│   ├── include/
+│   │   └── syscalls.inc
 │   ├── breakpoint_site.cpp
+│   ├── breakpoint.cpp
 │   ├── CMakeLists.txt
 │   ├── disassembler.cpp
+│   ├── dwarf.cpp
+│   ├── elf.cpp
 │   ├── libkdebugger.cpp
 │   ├── pipe.cpp
 │   ├── process.cpp
 │   ├── registers.cpp
+│   ├── stack.cpp
+│   ├── syscalls.cpp
+│   ├── target.cpp
+│   ├── types.cpp
 │   └── watchpoint.cpp
 ├── test/
-│   ├── CMakeLists.txt
 │   ├── targets/
 │   │   ├── anti_debugger.cpp
 │   │   ├── CMakeLists.txt
 │   │   ├── end_immediately.cpp
 │   │   ├── hello_kdebugger.cpp
+│   │   ├── libmarshmellow.cpp
+│   │   ├── main_cu_main.cpp
+│   │   ├── marshmellow.cpp
 │   │   ├── memory.cpp
+│   │   ├── multi_cu_other.cpp
+│   │   ├── multithreaded.cpp
+│   │   ├── overloaded.cpp
 │   │   ├── reg_read.s
 │   │   ├── reg_write.s
-│   │   └── run_endlessly.cpp
+│   │   ├── run_endlessly.cpp
+│   │   └── step.cpp
+│   ├── CMakeLists.txt
 │   └── tests.cpp
 ├── tools/
 │   ├── CMakeLists.txt
 │   └── kdebugger.cpp
+├── .clang-format
+├── .clang-tidy
+├── .gitignore
+├── CMakeLists.txt
+├── LICENSE
+├── README.md
 └── vcpkg.json
 ```
 
@@ -114,12 +141,12 @@ KDebugger/
 4. Software and Hardware Breakpoint functionality ✅
 5. Extended Watchpoint and Catchpoint functionality around Systemcalls ✅
 6. Signal and Error handling based on unit testing (via Catch2) ✅
-7. Multi-Threaded Architecture ⚠️
+7. Multi-Threaded Architecture ✅
 8. In-Depth Debug Information and Improvement statistics ✅
 9. Line Tables and Source-Level breakpoints ✅
-10. Stack Frame & Unwinding unique view ⚠️
-11. Internal library observation ⚠️
-12. Linking and Encoding information ⚠️
+10. Stack Frame & Unwinding unique view ✅
+11. Internal library observation ✅
+12. Linking and Encoding information ✅
 13. Profiler and Code-Generation Optimization Techniques ⚠️
 14. Custom Disassembler and Profiler Integration (Big Goal) ⚠️
 15. Flame Graph Support and Logging ⚠️
