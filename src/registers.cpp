@@ -52,7 +52,7 @@ namespace {
 	}
 
 	// writing to a register in bytes
-	void sdb::registers::write(const register_info & info, value val, bool commit) {
+	void kdebugger::registers::write(const register_info & info, value val, bool commit) {
 		auto bytes = as_bytes(m_Data);
 
 		// visit -> takes a callback && std::variant to call a function
@@ -87,12 +87,13 @@ namespace {
 		}
 
 		if(commit) {
-			if(info.type == register_type::fpr)
-				m_Proc->write_fprs(m_Data.i387);
+			
+            if(info.type == register_type::fpr)
+				m_Proc->write_fprs(m_Data.i387, m_Tid);
 
 			else {
 				auto aligned_offset = info.offset & ~ 0b111;
-				m_Proc->write_user_area(aligned_offset, from_bytes<std::uint64_t>(bytes + aligned_offset));
+				m_Proc->write_user_area(aligned_offset, from_bytes<std::uint64_t>(bytes + aligned_offset), m_Tid);
 			}
 		}
 	}
