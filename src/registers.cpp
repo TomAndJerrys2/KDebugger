@@ -143,8 +143,8 @@ bool kdebugger::registers::is_undefined(register_id id) const {
 
 
 void kdebugger::registers::flush() {
-	m_Proc->write_fprs(m_Data.i387);
-	m_Proc->write_gprs(m_Data.regs);
+	m_Proc->write_fprs(m_Data.i387, m_Tid);
+	m_Proc->write_gprs(m_Data.regs, m_Tid);
 	auto info = register_info_by_id(register_id::dr0);
 
 	for(auto i {0}; i < 8; ++i) {
@@ -155,6 +155,6 @@ void kdebugger::registers::flush() {
 		auto ptr = reinterpret_cast<std::byte *>(m_Data.u_debugreg + i);
 		auto bytes = from_bytes<std::uint64_t>(ptr);
 
-		m_Proc->write_user_area(reg_offset, bytes);
+		m_Proc->write_user_area(reg_offset, bytes, m_Tid);
 	}
 }

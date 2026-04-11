@@ -205,17 +205,38 @@ kdebugger::stop_reason::stop_reason(pid_t tid, int wait_status) : tid {tid} {
 
 // waits for a signal to be passed - passes a reason back
 // to our state object in case of exception 
-kdebugger::stop_reason kdebugger::process::wait_on_signal() {
-	
+kdebugger::stop_reason kdebugger::process::wait_on_signal(pid_t to_await) {
 	int wait_status;
 	int options {0};
+    pid_t tid;
 
-	if(waitpid(m_Pid, &wait_status, options) < 0) {
+	if(tid = waitpid(to_await, &wait_status, options) < 0) {
 		error::send_errno("waitpid failed");
 	}
 
-	stop_reason reason(wait_status);
-	m_State = reason.reason;
+	stop_reason reason(tid, wait_status);
+    auto final_reason = handle_signal(reason, true);
+    if(!final_reason) {
+        resume(tid);
+        return wait_on_signal(to_await);
+    }
+
+    reason = *file_reason;
+    auto & thread = m_Threads.at(tid);
+    thread.reason = reason;
+    thread.state = reason.reason;
+
+    if(reason.reason == process_state::exited || reason.reason == process_state::terminated) {
+        report_thread_lifecycle_event(reason);
+        if(tid == m_Pid) {
+            m_State = reason.reason;
+            return reason;
+        } 
+
+        else {
+            return wait_on_signal(-1);
+        }
+    }
 
 	if(m_Attached && m_State == process_state::stopped) {
 		read_all_registers();
