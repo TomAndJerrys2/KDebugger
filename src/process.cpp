@@ -664,3 +664,28 @@ kdebugger::registers & kdebugger::process::get_registers(std::optional<pid_t> ot
 const kdebugger::registers & kdebugger::process::get_registers(std::optional<pid_t> otid) const {
     return const_cast<process *> (this)->get_registers(otid);
 }
+
+#pragma region TEST_NEW_FUNCS
+// new implementation for multi-threading
+// rm'd old one
+void kdebugger::process::resume(std::optional<pid_t> otid) {
+    auto tid = otid.value_or(m_CurrentThread);
+    step_over_breakpoint(tid);
+    send_continue(tid);
+}
+
+void kdebugger::process::step_over_breakpoint(pid_t tid) {
+    auto pc = get_pc(tid);
+
+    if(m_BreakPointSites.enable_stoppoint_at_address(pc)) {
+        // to do later
+        // splitting old resume function up
+    }
+}
+
+void kdebugger::process::send_continue(pid_t tid) {
+    auto request = xxxxxxx;
+    m_State = process_state::running;
+}
+
+#pragma endregion
