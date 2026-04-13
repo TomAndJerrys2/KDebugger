@@ -177,6 +177,7 @@ namespace kdebugger {
             std::unordered_map<pid_t, thread_state> m_Threads;
             pid_t m_CurrentThread;
 
+            std::function<void (const stop_reason &)> m_ThreadLifecycleCallback;
             void swallow_pending_sigstop(pid_t tid);
             void send_continue(pid_t tid);
             void step_over_breakpoint(pid_t tid);
@@ -313,6 +314,9 @@ namespace kdebugger {
         
             void report_thread_lifecycle_event(const stop_reason & reason);
 
+            void install_thread_lifecycle_callback(std::function<void (const stop_reason &)> callback) {
+                m_ThreadLifecycleCallback = std::move(callback);
+            }
 
 			~process();
 	};
