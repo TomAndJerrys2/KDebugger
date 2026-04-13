@@ -673,3 +673,10 @@ void kdebugger::process::send_continue(pid_t tid) {
     m_State = process_state::running;
 }
 
+void kdebugger::process::resume_all_threads() {
+    for(auto & [tid, _] : m_Threads)
+        step_over_breakpoint(tid);
+
+    for(auto & [tid, _] : m_Threads)
+        send_continue(tid);
+}
