@@ -150,36 +150,6 @@ std::unique_ptr<kdebugger::process> kdebugger::process::attach(const pid_t pid) 
 	return proc;
 }
 
-// resumes a process being held
-void kdebugger::process::resume(std::optional<pid_t> otid) {
-	auto tid = otid.value_or(m_CurrentThread);
-	auto pc = get_pc(tid);
-
-	if(m_BreakPointSites.enable_stoppoint_at_address(pc)) {
-		auto & bp = m_BreakPoinSites.get_by_address(pc);
-		bp.disable();
-
-		if(ptrace(PTRACE_SINGLESTEP, tid, nullptr, nullptr) < 0)
-			error::send_errno("Failed to single-step!");
-
-		int wait_status;
-		if(waitpid(tid, &wait_status, 0) < 0)
-			error::send_errno("waitpid failed");
-
-		bp.enable();
-	}
-
-    auto request = (m_SyscallCatchPolicy.get_mode == 
-            syscall_catch_policy::mode::none ? PTRACE_CONT : PTRACE_SYSCALL);
-
-	if(ptrace(request, tid, nullptr, nullptr) < 0) {
-		error::send_errno("Could not resume Process");
-	}
-    
-    m_Threads.at(tid).state = process_state::running;
-	m_State = process_state::running;
-}
-
 // produce a stop reason for why the process
 // was stopped by an exit code or signal
 kdebugger::stop_reason::stop_reason(pid_t tid, int wait_status) : tid {tid} {
@@ -665,7 +635,6 @@ const kdebugger::registers & kdebugger::process::get_registers(std::optional<pid
     return const_cast<process *> (this)->get_registers(otid);
 }
 
-#pragma region TEST_NEW_FUNCS
 // new implementation for multi-threading
 // rm'd old one
 void kdebugger::process::resume(std::optional<pid_t> otid) {
@@ -678,14 +647,29 @@ void kdebugger::process::step_over_breakpoint(pid_t tid) {
     auto pc = get_pc(tid);
 
     if(m_BreakPointSites.enable_stoppoint_at_address(pc)) {
-        // to do later
-        // splitting old resume function up
+ 		auto & bp = m_BreakPoinSites.get_by_address(pc);
+		bp.disable();
+
+		if(ptrace(PTRACE_SINGLESTEP, tid, nullptr, nullptr) < 0)
+			error::send_errno("Failed to single-step!");
+
+		int wait_status;
+		if(waitpid(tid, &wait_status, 0) < 0)
+			error::send_errno("waitpid failed");
+
+		bp.enable();
     }
 }
 
 void kdebugger::process::send_continue(pid_t tid) {
-    auto request = xxxxxxx;
+     auto request = (m_SyscallCatchPolicy.get_mode == 
+            syscall_catch_policy::mode::none ? PTRACE_CONT : PTRACE_SYSCALL);
+
+	if(ptrace(request, tid, nullptr, nullptr) < 0) {
+		error::send_errno("Could not resume Process");
+	}
+    
+    m_Threads.at(tid).state = process_state::running;
     m_State = process_state::running;
 }
 
-#pragma endregion
