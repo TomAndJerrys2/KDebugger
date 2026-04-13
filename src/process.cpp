@@ -680,3 +680,29 @@ void kdebugger::process::resume_all_threads() {
     for(auto & [tid, _] : m_Threads)
         send_continue(tid);
 }
+
+void kdebugger::process::stop_running_threads() {
+    for(auto & [tid, thread] : m_Threads) {
+        if(thread.state == process_state::running) {
+            if(!thread.pending_sigstop)
+                tgkill(m_Pid, tid, SIGSTOP);
+
+            int wait_status {0};
+            waitpid(tid, &wait_status, 0);
+
+            stop_reason thread_reason(tid, wait_status);
+            if(thread_reason.reason == process_state::stopped) {
+                if(thread_reason.info != SIGSTOP)
+                    thread.pending_sigstop = true;
+
+                else if(thread.pending_sigstop)
+                    thread.pending_sigstop = false;
+            
+            }
+
+            thread_reason = handle_signal(thread_reason, false).value_or(thread_reason);
+            m_Threads.at(tid).reason = thread_reason;
+            m_Threads.at(tid).state = thread_reason.reason;
+        }
+    }
+}
