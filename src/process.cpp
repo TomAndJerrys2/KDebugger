@@ -706,3 +706,21 @@ void kdebugger::process::stop_running_threads() {
         }
     }
 }
+
+std::optional<kdebugger::stop_reason> kdebugger::process::cleanup_exitied_threads(pid_t main_stop_tid) {
+    std::vector<pid_t> to_remove;
+    std::optional<stop_reason> to_report;
+    for(auto & [tid, thread] : m_Threads) {
+        if(tid != main_stop_tid && (thread.state == process_state::exited || thread.state == process_state::terminated)) {
+            to_remove.push_back(tid);
+            if(tid == m_Pid) {
+                to_report = thread.reason;
+            }
+        }
+    }
+
+    for(auto tid : to_remove)
+        m_Threads.erase(tid);
+
+    return to_report;
+}
