@@ -142,5 +142,23 @@ namespace kdebugger {
             }
 
             void notify_thread_lifecycle_event(const kdebugger::stop_reason & reason);
+
+            stack & get_stack(std::optional<pid_t> otid = std::nullopt) {
+                auto tid = otid.value_or(m_Process->current_thread());
+                return m_Threads.at(tid).frames;
+            }
+
+            const stack & get_stack(std::optional<pid_t> otid = std::nullopt) const {
+                return const_cast<target *>(this)->get_stack(otid);
+            }
+
+            kdebugger::stop_reason step_in(std::optional<pid_t> otid = std::nullopt);
+            kdebugger::stop_reason step_out(std::optional<pid_t> otid = std::nullopt);
+            kdebugger::stop_reason step_over(std::optional<pid_t> otid = std::nullopt);
+
+            kdebugger::line_table::iterator line_entry_at_pc(std::optional<pid_t> otid = std::nullopt) const;
+            kdebugger::stop_reason run_until_address(virt_addr address, std::optional<pid_t> otid = std::nullopt);
+
+            file_addr get_pc_file_address(std::optional<pid_t> otid = std::nullopt) const;
     };
 }
