@@ -108,8 +108,8 @@ namespace {
 		return stop_reason(process_state::stopped, SIGTRAP, trap_type::single_step);
 	}
 
-	kdebugger::line_table::iterator kdebugger::target::line_entry_at_pc() const {
-		auto pc = get_pc_file_address();
+	kdebugger::line_table::iterator kdebugger::target::line_entry_at_pc(std::optional<pid_t> otid) const {
+		auto pc = get_pc_file_address(otid);
 		if(!pc.elf_file())
 			return line_table::iterator();
 
@@ -352,3 +352,9 @@ namespace {
 		});
 	}
 }
+
+kdebugger::file_addr kdebugger::target::get_pc_file_address(std::optional<pid_t> otid) const {
+    return m_Process->get_pc(otid).to_file_addr(m_Elves);
+}
+
+
