@@ -338,6 +338,7 @@ kdebugger::stop_reason kdebugger::process::step_instruction(std::optional<pid_t>
 		to_reenable = &bp;
 	}
 
+    swallow_pending_sigstop(tid);
 	if(ptrace(PTRACE_SINGLESTEP, tid, nullptr, nullptr) < 0)
 		error::send_errno("Could not single step");
 
@@ -650,6 +651,7 @@ void kdebugger::process::step_over_breakpoint(pid_t tid) {
  		auto & bp = m_BreakPoinSites.get_by_address(pc);
 		bp.disable();
 
+        swallow_pending_sigstop(tid);
 		if(ptrace(PTRACE_SINGLESTEP, tid, nullptr, nullptr) < 0)
 			error::send_errno("Failed to single-step!");
 
@@ -778,4 +780,12 @@ std::optional<kdebugger::stop_reason> kdebugger::process::handle_signal(stop_rea
     }
 
     return reason;
+}
+
+void kdebugger::process::swallow_pending_sigstop(pid_t tid) {
+    if(m_Threads.at(tid).pending_sigstop) {
+        ptrace(PTRACE_CONT, tid, nullptr, nullptr);
+        waitpid(tid, nullptr, 0);
+        m_Threads.at(tid).pending_sigstop = false;
+    }
 }
