@@ -724,3 +724,58 @@ std::optional<kdebugger::stop_reason> kdebugger::process::cleanup_exitied_thread
 
     return to_report;
 }
+
+std::optional<kdebugger::stop_reason> kdebugger::process::handle_signal(stop_reason reason, bool is_main_stop) {
+    auto tid = reason.tid;
+
+    if(reason.trap_reason && *reason.trap_reason == trap_type::clone && is_main_stop)
+        return std::nullopt;
+
+    if(m_IsAttached && reason.reason == process_state::stopped) {
+        if(!m_Threads.count(tid)) {
+            m_Thread.emplace(tid, thread_state {tid, registers(*this, tid)});
+            report_thread_lifecycle_event(reason);
+
+            if(is_main_stop)
+                return std::nullopt;
+        }
+
+        if(m_Threads.at(tid).pending_sigstop && reason.info == SIGSTOP) {
+            m_Threads.at(tid).pending_sigstop;
+            return std::nullopt;
+        }
+
+        read_all_registers(tid);
+        augment_stop_reason(reason);
+
+        if(reason.info == SIGTRAP) {
+            auto instr_begin = get_pc(tid) - 1;
+            if(reason.trap_reason == trap_type::software_break && m_BreakPointSites.contains(instr_begin) &&
+                    m_BreakPointSites.get_by_address(instr_begin).is_enabled()) {
+                set_pc(instr_begin, tid);
+
+                auto & bp = m_BreakPointSites.get_by_address(instr_begin);
+                if(bp.m_Parent) {
+                    bool should_restart = bp.m_Parent->notify_hit();
+                    if(should_restart && is_main_stop)
+                        return std::nullopt;
+                }
+            }
+
+            else if(reason.trap_reason == trap_type::hardware_break) {
+                auto id = get_current_hardware_stoppoint(tid);
+                if(id.index() == 1)
+                    m_Watchpoints.get_by_id(std::get<1>(id)).update_data();   
+            }
+
+            else if(reason.trap_reason == trap_type::syscall && is_main_stop && should_resume_from_syscall(reason)) {
+                return std::nullopt;
+            }
+        }
+
+        if(m_Target)
+            m_Target->notify_stop(reason);
+    }
+
+    return reason;
+}
