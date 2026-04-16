@@ -152,8 +152,11 @@ namespace {
 		return reason;
 	}
 
-	kdebugger::stop_reason kdebugger::target::step_over() {
-		auto orig_line = line_entry_at_pc();
+	kdebugger::stop_reason kdebugger::target::step_over(std::optional<pid_t> otid) {
+        auto tid = otid.value_or(m_Process->current_thread());
+        auto & thread = m_Threads.at(tid);
+        auto & stack = get_stack(tid);
+        auto orig_line = line_entry_at_pc(tid);
 		disassembler disas(*m_Process);
 		kdebugger::stop_reason reason;
 
@@ -162,30 +165,36 @@ namespace {
 			auto inline_stack = stack.inline_stack_at_pc();
 			auto at_start_of_inline_form = stack.inline_height() > 0;
 
-			if(at_stack_of_inline_frame) {
+			if(has_inline_frames && at_stack_of_inline_frame) {
 				auto frame_to_skip = inline_skip[inline_stack.size() - stack.inline_height()];
 				auto return_address = frame_to_skip.high_pc().to_virt_addr();
-				reason = run_until_address(return_address);
 
-				if(!reason.is_step() || m_Process->get_pc() != return_address)
-					return reason;
+				reason = run_until_address(return_address, tid);
+                if(!reason.is_step() || m_Process->get_pc(tid) != return_address) {
+                    thread.state->reason = reason;
+                    return reason;
+                }
 			}
 
-			else if(auto instructions = disas.disassemble(2, m_Process->get_pc()); instructions[0].text.rfind("call") == 0) {
-				reason = run_until_address(instructions[1].address);
+			else if(auto instructions = disas.disassemble(2, m_Process->get_pc(tid)); instructions[0].text.rfind("call") == 0) {
+				reason = run_until_address(instructions[1].address, tid);
 
-				if(!reason.is_step() || m_Process->get_pc() != instructions[1].address)
-					return reason;
+                if(!reason.is_step() || m_Process->get_pc(tid) != instructions[1].address) {
+                    thread.state->reason = reason;
+                    return reason;
+                }
 			}
 
 			else {
-				reason = m_Process->step_instruction();
-				if(!reason.is_step())
-					return reason;
-			}
-		}
-		while((line_entry_at_pc() == orig_line || line_entry_at_pc()->end_sequence) &&
-					line_entry_at_pc() != line_table::iterator {});
+				reason = m_Process->step_instruction(tid);
+                if(!reason.is_step()) {
+                    thread.state->reason = reason;
+                    return reason;
+			    }
+		    }
+        }
+		while((line_entry_at_pc(tid) == orig_line || line_entry_at_pc(tid)->end_sequence) &&
+					line_entry_at_pc(tid) != line_table::iterator {});
 
 		return reason;
 	}
