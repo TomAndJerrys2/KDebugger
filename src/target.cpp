@@ -70,8 +70,8 @@ namespace {
 	}
 
 	void kdebugger::target::notify_stop(const kdebugger::stop_reason & reason) {
-		m_Stack.reset_inline_height();
-	}
+	   m_Threads.at(reason.tid).frames.unwind();
+    }
 
 	kdebugger::stop_reason kdebugger::target::step_in(std::optional<pid_t> otid) {
 		auto tid = otid.value_or(m_Process->current_thread());
@@ -376,4 +376,15 @@ namespace {
 
 kdebugger::file_addr kdebugger::target::get_pc_file_address(std::optional<pid_t> otid) const {
     return m_Process->get_pc(otid).to_file_addr(m_Elves);
+}
+
+void kdebugger::target::notify_thread_lifecycle_event(const stop_reason & reason) {
+    auto tid = reason.tid;
+    if(reason.reason == process_state::stopped) {
+        auto & state = m_Process->thread_states()[tid];
+        m_Threads.emplace(tid, thread {&state, stack {this, tid}});
+    }
+
+    else 
+        m_Threads.erase(tid);
 }
