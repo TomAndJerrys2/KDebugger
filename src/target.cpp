@@ -73,24 +73,32 @@ namespace {
 		m_Stack.reset_inline_height();
 	}
 
-	kdebugger::stop_reason kdebugger::target::step_in() {
-		auto & stack = get_stack();
+	kdebugger::stop_reason kdebugger::target::step_in(std::optional<pid_t> otid) {
+		auto tid = otid.value_or(m_Process->current_thread());
+        auto & stack = get_stack(tid);
+        auto & thread = m_Threads.at(tid)
+
 		if(stack.inline_height() > 0) {
 			stack.simulate_inlined_step_in();
-			return stop_reason(process_state::stopped, SIGTRAP, trap_type::single_step);
-		}
+			stop_reason(process_state::stopped, SIGTRAP, trap_type::single_step);
+		    thread.state->reason = reason;
 
-		auto orig_line = line_entry_at_pc();
+            return reason;
+        }
+
+		auto orig_line = line_entry_at_pc(tid);
 
 		do {
-			auto reason = m_Process->step_instruction();
-			if(!reason.is_step())
-				return reason;
-		} 
-		while((line_entry_at_pc() == orig_line || line_entry_at_pc()->end_sequence)
-				&& line_entry_at_pc() != line_table::iterator {});
+			auto reason = m_Process->step_instruction(tid);
+			if(!reason.is_step()) {
+				thread.state->reason = reason;
+                return reason;          
+            }
+        }
+		while((line_entry_at_pc(tid) == orig_line || line_entry_at_pc(tid)->end_sequence)
+				&& line_entry_at_pc(tid) != line_table::iterator {});
 
-		auto pc = get_pc_file_address();
+		auto pc = get_pc_file_address(tid);
 		if(pc.elf_file() != nullptr) {
 			auto & dwarf = pc.elf_file()->get_dwarf();
 			auto func = dwarf.function_containing_address(pc);
@@ -100,13 +108,15 @@ namespace {
 
 				if(line != line_table::iterator {}) {
 					++line;
-					return run_until_address(line->address.to_virt_addr());
+					return run_until_address(line->address.to_virt_addr(), tid);
 				}
 			}
 		}
 
-		return stop_reason(process_state::stopped, SIGTRAP, trap_type::single_step);
-	}
+		stop_reason(process_state::stopped, SIGTRAP, trap_type::single_step);
+	    thread.state->reason = reason;
+        return reason;
+    }
 
 	kdebugger::line_table::iterator kdebugger::target::line_entry_at_pc(std::optional<pid_t> otid) const {
 		auto pc = get_pc_file_address(otid);
@@ -120,17 +130,17 @@ namespace {
 		return cu->line().get_entry_by_address(pc);
 	}
 
-	kdebugger::stop_reason kdebugger::target::run_until_address(virt_addr address) {
-		breakpoint_site* breakpoint_to_remove = nullptr;
+	kdebugger::stop_reason kdebugger::target::run_until_address(virt_addr address, std::optional<pid_t> otid) {
+		auto tid = otid.value_or(m_Process->current_thread());
+        breakpoint_site* breakpoint_to_remove = nullptr;
 		if(!m_Process->breakpoint_sites().contains_address(address)) {
 			breakpoint_to_remove = &m_Process->create_breakpoint_site(address, false, true);
 			breakpoint_to_remove->enable();
 		}
 	
-
-		m_Process->resume();
-		auto reason = m_Process->wait_on_signal();
-		if(reason.is_breakpoint() && m_Process->get_pc() == address) {
+		m_Process->resume(tid);
+		auto reason = m_Process->wait_on_signal(tid);
+		if(reason.is_breakpoint() && m_Process->get_pc(tid) == address) {
 			reason.trap_reason = trap_type::single_step;
 		}
 
@@ -138,6 +148,7 @@ namespace {
 			m_Process->breakpoint_sites().remove_by_address(breakpoint_to_remove->address());
 		}
 
+        m_Threads.at(tid).state->reason = reason;
 		return reason;
 	}
 
@@ -181,7 +192,8 @@ namespace {
 
 	// come back to this as very buggy
 	kdebugger::stop_reason kdebugger::target::step_out() {
-		auto & stack = get_stack();
+        auto tid = otid.value_or(m_Process->current_thread());
+        auto & stack = get_stack(tid);
 		auto inline_stack = stack.inline_stack_at_pc();
 		auto has_inline_frames = inline_stack.size() > 1;
 		auto at_inline_frame = stack.inline_height() < inline_stack.size() - 1;
@@ -190,7 +202,7 @@ namespace {
 			auto current_frame = inline_stack[inline_stack.size() - stack.inline_height() - 1];
 			auto return_address = current_frame.high_pc().to_virt_addr();
 
-			return run_until_address(return_address);
+			return run_until_address(return_address, tid);
 		}
 
 		auto & regs = stack.frames()[stack.current_frame_index() + 1].regs;
@@ -200,7 +212,7 @@ namespace {
 
 		kdebugger::stop_reason reason;
 		for(auto frames = stack.frames().size(); stack.frames().size() >= frames;) {
-			reason = run_until_address(return_address);
+			reason = run_until_address(return_address, tid);
 
 			if(!reason.is_breakpoint() || m_Process->get_pc() != return_address)
 				return reason;
@@ -356,5 +368,3 @@ namespace {
 kdebugger::file_addr kdebugger::target::get_pc_file_address(std::optional<pid_t> otid) const {
     return m_Process->get_pc(otid).to_file_addr(m_Elves);
 }
-
-
