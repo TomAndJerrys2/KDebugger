@@ -28,6 +28,26 @@
 #include <libkdebugger/disassembler.hpp>
 #include <libkdebugger/target.hpp>
 
+void thread_lifecycle_callback(const kdebugger::stop_reason & reason) {
+    std::string_view action;
+
+    switch(reason.reason) {
+        case kdebugger::process_state::exited:
+            action = "exited";
+            break;
+
+        case kdebugger::process_state::terminated:
+            action = "terminated";
+            break;
+
+        case kdebugger::process_state::stopped:
+            action = "stopped";
+            break;
+    }
+
+    std::print("thread {} {}\n", reason.tid, action);
+}
+
 void print_backtrace(const kdebugger::target & target) {
     auto & stack = target.get_stack();
     auto i {0};
