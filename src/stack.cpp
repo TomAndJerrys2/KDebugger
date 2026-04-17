@@ -2,7 +2,7 @@
 #include <libkdebugger/target.hpp>
 
 std::vector<kdebugger::die> kdebugger::stack::inline_stack_at_pc() const {
-	auto pc = m_Target->get_pc_file_address();
+	auto pc = m_Target->get_pc_file_address(m_Tid);
 	
 	if(!pc.elf_file())
 		return {};
@@ -39,10 +39,10 @@ void kdebugger::stack::unwind() {
 	reset_inline_height();
 	m_CurrentFrame = m_InlineHeight;
 
-	auto virt_pc = m_Target->get_process().get_pc();
-	auto file_pc = m_Target->get_pc_file_address();
+	auto virt_pc = m_Target->get_process().get_pc(m_Tid);
+	auto file_pc = m_Target->get_pc_file_address(m_Tid);
 	auto & proc = m_Target->get_process();
-	auto regs = proc.get_registers();
+	auto regs = proc.get_registers(m_Tid);
 
 	m_Frames.clear();
 
