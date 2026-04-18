@@ -28,6 +28,36 @@
 #include <libkdebugger/disassembler.hpp>
 #include <libkdebugger/target.hpp>
 
+void handle_thread_command(kdebugger::target & target, const std::vector<std::string> & args) {
+    if(args.size() < 2) {
+        print_help({"help", "thread"});
+        return;
+    }
+
+    if(is_prefix(args[1], "list")) {
+        for(auto & [tid, thread] : target.threads()) {
+            auto prefix = tid == target.get_process().current_thread() ? "*" : " ";
+            std::print("{} Thread {}: {}\n", prefix, tid, get_signal_stop_reason(target, thread.state->reason));
+        }
+    }
+
+    else if(is_prefix(args[1], "select")) {
+        if(args.size() != 3) {
+            print_help({"help", "thread"});
+            return;
+        }
+
+        auto tid = kdebugger::to_integral<pid_t>(args[2]);
+
+        if(!tid) {
+            std::cerr << "Invalid thread id\n";
+            return;
+        }
+
+        target.get_process().set_current_thread(*tid);
+    }
+}
+
 void thread_lifecycle_callback(const kdebugger::stop_reason & reason) {
     std::string_view action;
 
