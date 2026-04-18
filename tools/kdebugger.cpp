@@ -632,6 +632,7 @@ namespace {
                 stepi       - single instruction step command
                 down        - select the stack frame below the current view
                 up          - select the stack frame above the current view
+                thread      - commands for operating on threads
                 )";
 		}
 
@@ -682,6 +683,13 @@ namespace {
                 syscall
                 syscall none
                 syscall <list of names or IDs>
+            )";
+        }
+
+        else if(is_prefix(args[1], "thread")) {
+            std::cerr << R"(
+                list
+                select <thread ID>
             )";
         }
 
