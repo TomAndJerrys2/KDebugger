@@ -987,10 +987,14 @@ namespace {
         }
 
 		else if(is_prefix(command, "continue")) {
-			process->resume();
+			process->resume_all_threads();
 			auto reason = process->wait_on_signal();
 			handle_stop(*target, reason);
 		}
+
+        else if(is_prefix(command, "thread")) {
+            handle_thread_command(*target, args);
+        }
 			
 		else if(is_prefix(command, "step")) {
 			auto reason = process->step_instruction();
@@ -1098,7 +1102,7 @@ namespace {
 }
 
 // Main Execution
-int main(int argc, const char** argv) {
+int main(int argc, const char* argv[]) {
 		
 	if(argc == 1) {
 		std::cerr << "> No arguments were passed.\n";
@@ -1109,6 +1113,8 @@ int main(int argc, const char** argv) {
 		auto target = attach(argc, argv);
 	    g_KdebuggerProcess = &target->get_process();
         signal(SIGINT, handle_sigint);
+        target->get_process().install_thread_lifecycle_callback(thread_lifecycle_callback);
+
         main_loop(process);
 	}
 
