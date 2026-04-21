@@ -287,10 +287,10 @@ namespace {
 namespace {
     std::string get_signal_stop_reason(const kdebugger::target & target, kdebugger::stop_reason reason) {
         auto & process = target.get_process();
-        auto pc = process.get_pc();
+        auto pc = process.get_pc(reason.tid);
         std::string message = std::format("stopped with signal {} at {:#x}", sigabbrev_np(reason.info), pc.addr());
 
-        auto line = target.line_entry_at_pc();
+        auto line = target.line_entry_at_pc(reason.tid);
         if(line != kdebugger::line_table::iterator()) {
             auto file = line->file_entry->path.filename().string();
             message += std::format(", {} : {}", file, line->line);
@@ -352,13 +352,13 @@ namespace {
 
     std::string get_sigtrap_info(const kdebugger::process & process, kdebugger::stop_reason reason) {
         if(reason.trap_reason == kdebugger::trap_type::software_break) {
-            auto & site = process.breakpoint_sites().get_by_address(process.get_pc());
+            auto & site = process.breakpoint_sites().get_by_address(process.get_pc(reason.tid));
             
             return std::format("(breakpoint {})", site_id());
         }
 
         if(reason.trap_reason == kdebugger::trap_type::hardware_break) {
-            auto id = process.get_current_hardware_stoppoint();
+            auto id = process.get_current_hardware_stoppoint(reason.tid);
 
             if(id.index() == 0)
                 return std::format("(breakpoint {})", std::get<0>(id));
@@ -1153,7 +1153,7 @@ int main(int argc, const char* argv[]) {
         signal(SIGINT, handle_sigint);
         target->get_process().install_thread_lifecycle_callback(thread_lifecycle_callback);
 
-        main_loop(process);
+        main_loop(target);
 	}
 
 	catch (const kdebugger::error & err) {
