@@ -980,21 +980,21 @@ namespace {
 		std::string message;	
 		switch(reason.reason) {
 			case kdebugger::process_state::exited:
-				message = std::format("Exited with status: {}", 
-						static_cast<int> (reason.info));
+				message = std::format("Process {} : Exited with status: {}", 
+						target.get_process().pid()
+                        static_cast<int> (reason.info));
 				break;
 
 			case kdebugger::process_state::terminated:
-				message = std::format("Terminated with signal: {}", 
-						sigabbrev_np(reason.info));
+				message = std::format("Process {} : Terminated with signal: {}", 
+						target.get_process().pid()
+                        sigabbrev_np(reason.info));
 				break;
 			
 			case kdebugger::process_state::stopped:
-                message = get_signal_stop_reason(target, reason);
+		        std::print("Thread {} {}\n", reason.tid, get_signal_stop_reason(target, reason));	
                 break;
 		}
-		
-		std::print("Process {} {}\n", process.pid(), message);
 	}
 
 	// handles commands given by the command-line as arguments
