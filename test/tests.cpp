@@ -809,3 +809,35 @@ TEST_CASE("Shared library tracing works", "[dynlib]") {
 	REQUIRE(target->get_pc_file_address().elf_file()->path().filename() == "libmeow.so");
 	close(dev_null);
 }
+
+// in case - testing that multi threading works
+TEST_CASE("Multi-Threading works", "[thread]") {
+    auto dev_null = open("/dev/null", O_WRONGLY);
+    auto target = target::launch("targets/multi_threaded", dev_null);
+    auto & proc = target->get_process();
+
+    target->create_function_breakpoint("say_hi").enable();
+
+    std::set<pid_t> tids;
+    stop_reason reason;
+
+    do {
+        proc.resume_all_threads();
+        reason = proc.wait_on_signal();
+        
+        for(auto & [tid, thread] : proc.thread_states()) {
+            if(thread.reason.reason == kdebugger::process_state::stopped && tid != proc.pid()) {
+                tids.insert(tid);
+            }
+        }
+    }
+
+    while(tids.size() < 10);
+
+    REQUIRE(tids.size() == 10);
+
+    proc.resume_all_threads();
+    reason = proc.wait_on_signal();
+    REQUIRE(reason.reason == kdebugger::process_state::exited);
+    close(dev_null);
+}
