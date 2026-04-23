@@ -572,4 +572,42 @@ namespace kdebugger {
 				return *m_Cfi;
 			}
 	};
+
+    class dwarf_expression {
+        
+        public:
+            struct address_result {
+                virt_addr address;
+            };
+
+            struct register_result {
+                std::uint64_t reg_num;
+            };
+
+            struct data_result {
+                span<const std::byte> data;
+            };
+
+            struct literal_result {
+                std::uint64_t value;
+            };
+
+            struct empty_result {};
+
+            using simple_location = std::variant<
+                address_result, register_result,
+                data_result, literal_result>;
+
+            struct pieces_result {
+                struct piece {
+                    simple_location location;
+                    std::uint64_t bit_size;
+                    std::uint64_t offset {0};
+                };
+
+                std::vector<piece> pieces;
+            };
+
+            using result = std::variant<simple_location, pieces_result>;
+    };
 }
