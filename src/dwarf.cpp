@@ -1,5 +1,6 @@
 // General headers
 #include <variant>
+#include <functional>
 
 // Project specific headers
 #include <libkdebugger/dwarf.hpp>
@@ -1434,4 +1435,60 @@ kdebugger::registers execute_unwind_rules(unwind_context & ctx, kdebugger::regis
 	}
 
 	return unwound_regs;
+}
+
+kdebugger::dwarf_expression::result kdebugger::dwarf_expression::eval(const kdebugger::process & proc, 
+		const registers & regs, bool push_cfa) {
+	cursor cur({m_ExprData.begin(), m_ExprData.end()});
+	std::vector<std::uint64_t> stack;
+
+	if(push_cfa)
+		stack.push_back(regs.cfa().addr());
+
+	std::optional<simple_location> most_recent_location;
+	std::vector<pieces_result::pieces> pieces;
+
+	bool result_is_address = true;
+
+	auto binop = [&](auto op) {
+		auto rhs = stack.back();
+		stack.pop_back();
+		auto lhs = stack.back();
+		stack.pop_back();
+		stack.push_back(op(lhs, rhs));
+	};
+
+	auto relop [&](auto op) {
+		auto rhs = static_cast<std::uint64_t>(stack.back());
+		stack.pop_back();
+		auto lhs = static_cast<std::uint64_t>(stack.back());
+		stack.pop_back();
+		stack.push_back(op(lhs, rhs) ? 1 : 0);
+	};
+
+	auto virt_pc = virt_addr {regs.read_by_id_as<std::uint64_t>(register_id::rip)};
+	auto pc = virt_pc.to_file_addr(*m_Parent->elf_file());
+	auto func = m_Parent->function_containing_address(pc);
+
+	auto get_current_location = [&]() {
+		simple_location loc;
+
+		if(stack.empty()) {
+			loc = most_recent_location.value_or(empty_result {});
+			most_recent_location.reset();
+		}
+
+		else if(result_is_address) {
+			loc = address_result {virt_addr {stack.back()}};
+			stack.pop_back();
+		}
+
+		else {
+			loc = literal_result {stack.back()};
+			stack.pop_back();
+			result_is_address = true;
+		}
+
+		return loc;
+	};
 }
