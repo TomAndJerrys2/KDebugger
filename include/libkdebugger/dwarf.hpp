@@ -575,6 +575,11 @@ namespace kdebugger {
 
     class dwarf_expression {
         
+	private:
+		const dwarf * m_Parent;
+		span<const std::byte> m_ExprData;
+		bool m_InFrameInfo;
+
         public:
             struct address_result {
                 virt_addr address;
@@ -609,5 +614,11 @@ namespace kdebugger {
             };
 
             using result = std::variant<simple_location, pieces_result>;
+   
+   	    dwarf_expression(const dwarf & parent, span<const std::byte> expr_data,
+			    bool in_frame_info) : m_Parent {&parent}, m_ExprData {expr_data},
+		    		m_InFrameInfo {in_frame_info} {}
+
+	    result eval(const kdebugger::process & proc, const registers & regs, bool push_cfa = false) {}
     };
 }
