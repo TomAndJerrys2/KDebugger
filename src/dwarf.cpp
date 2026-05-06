@@ -1587,3 +1587,14 @@ kdebugger::dwarf_expression::result kdebugger::dwarf_expression::eval(const kdeb
 		}
 	}
 }
+
+kdebugger::virt_addr read_frame_base_result(const kdebugger::dwarf_expression::result & loc) {
+	auto simple_loc = std::get_if<kdebugger::dwarf_expression::simple_location>(&loc);
+       	if(!simple_loc)
+		kdebugger::error::send("Unsupported frame base location");
+	
+	if(auto addr_res = std::get_if<kdebugger::dwarf_expression::address_result>(simple_loc))
+		return addr_res->address;
+
+	kdebugger::error::send("Unsupported frame base location");	
+}
