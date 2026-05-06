@@ -1521,5 +1521,69 @@ kdebugger::dwarf_expression::result kdebugger::dwarf_expression::eval(const kdeb
 				};
 			}	
 		}
+
+		switch(opcode) {
+			case DW_OP_addr:
+				auto addr = file_addr {
+					*parent->elf_file(), cur.u64()
+				};
+
+				stack.push_back(addr.to_virt_addr().addr());
+				break;
+
+			case DW_OP_const1u:
+				stack.push_back(cur.u8());
+				break;
+
+			case DW_OP_const1s:
+				stack.push_back(cur.s8());
+				break;
+
+			case DW_OP_const2u:
+				stack.push_back(cur.u16());
+				break;
+
+			case DW_OP_const2s:
+				stack.push_back(cur.s16());
+				break;
+
+			case DW_OP_const4u:
+				stack.push_back(cur.u32());
+				break;
+
+			case DW_OP_const4s:
+				stack.push_back(cur.s32());
+				break;
+
+			case DW_OP_const8u:
+				stack.push_back(cur.u64());
+				break;
+
+			case DW_OP_const8s:
+				stack.push_back(cur.s64());
+				break;
+
+			case DW_OP_constu:
+				stack.push_back(cur.uleb128());
+				break;
+
+			case DW_OP_consts:
+				stack.push_back(cur.sleb128());
+				break;
+
+			case DW_OP_bregx:
+				auto reg_val = regs.read(kdebugger::register_info_by_dwarf(cur.uleb128()));
+				stack.push_back(std::get<std::uint64_t>(reg_val) + cur.sleb128());
+				break;
+
+			case DW_OP_fbreg:
+				auto offset = cur.uleb128();
+				auto fb_loc = func.value()[DW_AT_frame_base]
+					.as_evaluated_location(proc, regs, true);
+
+				auto fb_addr = read_frame_base_result(fb_loc, regs);
+				stack.push_back(fb_addr.addr() + offset);
+				break;
+		}
 	}
 }
