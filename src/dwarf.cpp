@@ -1491,4 +1491,35 @@ kdebugger::dwarf_expression::result kdebugger::dwarf_expression::eval(const kdeb
 
 		return loc;
 	};
+
+	while(!cur.finished()) {
+		auto opcode = cur.u8();
+
+		if(opcode >= DW_OP_lit0 && opcode <= DW_OP_lit31) {
+			stack.push_back(opcode - DW_OP_lit0);
+		}
+
+		else if(opcode >= DW_OP_breg0 && opcode <= DW_OP_breg31) {
+			auto reg = opcode - DW_OP_breg0;
+			auto reg_val = regs.read(kdebugger::register_info_by_dwarf(reg));
+			auto offset = cur.sleb128();
+
+			stack.push_back(std::get<std::uint64_t>(reg_val) + offset);
+		}
+
+		else if(opcode >= DW_OP_reg0 && opcode <= DW_OP_reg31) {
+			auto reg = opcode - DW_OP_reg0;
+
+			if(m_InFrameInfo) {
+				auto reg_val = regs.read(kdebugger::register_info_by_dwarf(reg));
+				stack.push_back(std::get<std::uint64_t>(reg_val));
+			}
+
+			else {
+				most_recent_location = register_result {
+					static_cast<std::uint64_t>(reg);
+				};
+			}	
+		}
+	}
 }
