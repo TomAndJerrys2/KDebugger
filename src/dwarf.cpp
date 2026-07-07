@@ -1584,6 +1584,30 @@ kdebugger::dwarf_expression::result kdebugger::dwarf_expression::eval(const kdeb
 				auto fb_addr = read_frame_base_result(fb_loc, regs);
 				stack.push_back(fb_addr.addr() + offset);
 				break;
+
+			case DW_OP_dup:
+				stack.push_back(stack.back());
+				break;
+
+			case DW_OP_drop:
+				stack.pop_back();
+				break;
+
+			case DW_OP_pick:
+				stack.push_back(stack.rbegin()[cur.u8()]);
+				break;
+
+			case DW_OP_over:
+				stack.push_back(stack.rbegin()[1]);
+				break;
+
+			case DW_OP_swap:
+				stack.push_back(stack.rbegin()[0], stack.rbegin()[1]);
+				break;
+
+			case DW_OP_rot:
+				std::rotate(stack.rbegin(), stack.rbegin() + 1, stack.rbegin() + 3);
+				break;
 		}
 	}
 }
